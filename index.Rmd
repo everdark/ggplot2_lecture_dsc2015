@@ -1,0 +1,1150 @@
+---
+title: "R Visualization"
+author: "Ben Chen, Kyle Chung, Mansun Kuo"
+date: '`r Sys.Date()`<br><br><a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/"><img alt="創用 CC 授權條款" style="border-width:0" src="img/by-nc-sa-4.0-88x31.png" /></a>'
+output:
+  ioslides_presentation:
+    fig_height: 4
+    fig_width: 7
+    highlight: default
+    logo: img/Taiwan-R-logo.png
+    widescreen: yes
+    smaller: yes
+    transition: faster
+subtitle: Using ggplot2
+---
+
+```{r include=FALSE}
+library(knitr)
+knitr::opts_chunk$set(warning = TRUE,
+                      echo = TRUE,
+                      message = TRUE,
+                      fig.align='center',
+                      cache=TRUE)
+```
+
+
+```{r, echo=FALSE, message=FALSE}
+library(ggplot2)
+library(gridExtra)
+library(dplyr)
+library(data.table)
+library(reshape2)
+library(scales)
+```
+
+
+
+<!--######################################################################################-->
+# basic syntax
+<!--######################################################################################-->
+
+
+## the use of main function: *ggplot*
+
++ `library(ggplot2)`
++ `ggplot(data, aes(x, y, group, ...)) + geom_obj(...) + modify()`
++ or a quick and dirty alternative: `qplot`
++ Usage:
+    + data: an object of class `data.frame`
+        + **DATA** of your plot
+    + aes: a function that returns aesthetic mappings
+        + **VARIABLE** in data to be plotted
+    + geom_obj: geometric objects
+        + **TYPE** of plot
+        + `geom_bar()`, `geom_line()`, `geom_point()`, ...
+    + modify: additional modification to the plot
+        + `ggtitle()`, `scale_x_discrete()`, `theme_minimal()`...
+
+
+## a quick example | plot distribution of diamond cut quality
+
+```{r, fig.retina=2}
+ggplot(data=diamonds, aes(x=cut)) + geom_bar()
+```
+
+
+## Factor or Numeric?
++ Variable class affects `ggplot`'s behavior
++ Variable class affects `ggplot`'s behavior. **Twice**.
++ Always check your data.frame (use `str` or `class`) before calling `ggplot`
+
+
+<!--######################################################################################-->
+# bar plot
+<!--######################################################################################-->
+
+## sample dataset: `diamonds`
+
+```{r}
+str(diamonds)
+head(diamonds)
+```
+
+
+## x must be of type `factor`
+
+```{r, fig.retina=2}
+ggplot(data=diamonds, aes(x=cut)) + geom_bar()
+```
+
+
+## geom_bar drops category with no occurrence
+
+```{r, fig.retina=2}
+ggp <- ggplot(data=diamonds[1:5,], aes(x=cut)) + geom_bar()
+ggp
+```
+
+
+## force display all categories
+
+```{r, fig.retina=2}
+ggp <- ggplot(data=diamonds[1:5,], aes(x=cut)) + geom_bar()
+### <b>
+ggp + scale_x_discrete(drop=FALSE) # ?scale_x_discrete
+### </b>
+```
+
+
+## horizontal bar
+
+```{r, fig.retina=2}
+ggplot(data=diamonds, aes(x=cut)) + geom_bar() + coord_flip()
+```
+
+
+## change label naming
+
+```{r, fig.retina=2}
+ggp <- ggp + xlab("Cut") + ylab("Count") + ggtitle("Hello ggplot!")
+ggp
+```
+
+
+## change color
+
+```{r, fig.retina=2}
+# want to customize colors? refer to: www.cookbook-r.com/Graphs/Colors_(ggplot2)/
+ggp + geom_bar(fill="snow", color="black") # see colors() if you're picky
+```
+
+
+## plot counts as is | when counts are pre-calculated
+
+```{r}
+diamonds_precounted <- as.data.frame(table(diamonds$cut, dnn=c("Cut")))
+diamonds_precounted
+```
++ take a guess before you try!
++ `ggplot(data=diamonds_precounted, aes(x=Cut)) + geom_bar() # epic FAIL`
+
+
+## | wrong!
+
+```{r, fig.retina=2}
+ggplot(data=diamonds_precounted, aes(x=Cut)) + geom_bar()
+```
+
+
+## | correct!
+
+```{r, fig.retina=2}
+ggplot(diamonds_precounted, aes(x=Cut, y=Freq)) + geom_bar(stat="identity") # default is "bin"
+```
+
+
+## when using `stat="identity"`
+
++ row should be unique
+    + otherwise counts will be summed up
++ missing label will be present at default
+    + differ from `stat="bin"`
++ negative bar is allowed
+```{r}
+diamonds[1:5,]
+```
+
+
+## 
+
+```{r, fig.retina=2}
+ggplot(diamonds[1:5,], aes(x=cut, y=depth)) + geom_bar(stat="identity")
+```
+
+
+## reorder x
+
+```{r, fig.retina=2}
+ggplot(diamonds_precounted, aes(x=reorder(Cut, -Freq), y=Freq)) + 
+  geom_bar(stat='identity') # The order is determined by factor levels
+```
+
+
+## stack grouping | by `fill`
+
+```{r, fig.retina=2}
+ggplot(data=diamonds, aes(x=color, fill=cut)) + geom_bar()
+```
+
+
+## stack grouping |  by `color`
+
+```{r, fig.retina=2}
+ggplot(data=diamonds, aes(x=color, color=cut)) + geom_bar()
+```
+
+
+## dodge grouping
+
+```{r, fig.retina=2}
+ggplot(data=diamonds, aes(x=color, fill=cut)) + geom_bar(position="dodge")
+```
+
+
+## from bar to histogram | when x is numeric
+
+```{r, fig.retina=2, message=FALSE}
+ggplot(data=diamonds, aes(x=price)) + geom_bar()
+```
+
+
+## histogram grouping | stack
+
+```{r, fig.retina=2, message=FALSE}
+ggplot(data=diamonds, aes(x=price, fill=cut)) + geom_bar(position="stack")
+```
+
+
+## histogram grouping | identity (overlapping)
+
+```{r, fig.retina=2, message=FALSE}
+ggplot(data=diamonds, aes(x=price, fill=cut)) + geom_bar(position="identity", alpha=.5)
+```
+
+
+## from histogram to density plot
+
+```{r, fig.retina=2}
+ggplot(data=diamonds, aes(x=price, fill=cut)) + geom_density(position="identity", alpha=.5)
+```
+
+
+## both histogram and density (scale wrong...)
+
+```{r, fig.retina=2, message=FALSE}
+ggplot(data=diamonds[diamonds$cut %in% c("Fair", "Ideal"),], aes(x=price, fill=cut)) + 
+    geom_density(position="identity", alpha=.5) + 
+    geom_bar(position="identity", alpha=.5)
+```
+
+
+## both histogram and density
+
+```{r, fig.retina=2, message=FALSE}
+ggplot(data=diamonds[diamonds$cut %in% c("Fair", "Ideal"),], aes(x=price, y=..density.., fill=cut)) + 
+    geom_density(position="identity", alpha=.5) + 
+    geom_bar(position="identity", alpha=.5)
+```
+
+
+## exercise!
+
++ use the weather data to plot:
+    + total rainy hours for each city (PrecpHour)
+    + total rainy volume for each city (Precp)
+    + total sunny hours for each city (SunShine)
+    + total hours grouped by rainy / sunny for each city
++ remember to check variable type in advanced
++ the forth plot is rather difficult
+```{r, echo=FALSE}
+src_path <- "./data"
+citynames <- unique(gsub("_.*", '', dir(src_path)))
+citynames <- citynames[1:4] # take english version only
+dat <- list()
+for ( city in citynames ) {
+    dat[[city]] <- do.call(rbind, lapply(grep(city, dir(src_path, full.names=TRUE), value=TRUE), read.csv, stringsAsFactors=FALSE))
+    dat[[city]]$city <- city
+}
+dat <- do.call(rbind, dat)
+
+dat[dat$Precp == 'T', "Precp"] <- '0'
+dat$Precp <- as.numeric(dat$Precp)
+```
+
+
+## exercise! | total rainy hours by city
+
+```{r, echo=FALSE}
+ggplot(dat, aes(x=city, y=PrecpHour)) + geom_bar(stat="identity")
+```
+
+
+## exercise! | total rainy volume by city
+
+```{r, echo=FALSE}
+ggplot(dat, aes(x=city, y=Precp)) + geom_bar(stat="identity")
+```
+
+
+## exercise! | total sunny hours by city
+
+```{r, echo=FALSE}
+ggplot(dat, aes(x=city, y=SunShine)) + geom_bar(stat="identity")
+```
+
+
+## exercise! | hours group by rainy/suny by city
+
+```{r, echo=FALSE}
+dd <- by(dat, dat$city, 
+         function(x) c(rainyHour=sum(x$PrecpHour), sunnyHour=sum(x$SunShine)))
+dd <- as.data.frame(do.call(rbind, dd))
+dd$city <- rownames(dd)
+dd <- reshape(dd, direction="long", varying=c("rainyHour", "sunnyHour"), 
+              idvar="city", v.names="hour", times=c("rainyHour", "sunnyHour"), timevar="status")
+ggplot(dd, aes(x=city, y=hour, fill=status)) + geom_bar(stat="identity")
+```
+
+
+## exercise: possible solution 1 (basic)
+
+```{r, eval=FALSE}
+librart(ggplot2)
+src_path <- "./data"
+citynames <- unique(gsub("_.*", '', dir(src_path)))
+citynames <- citynames[1:4] # take english version only
+dat <- list()
+for ( city in citynames ) {
+    dat[[city]] <- do.call(rbind, lapply(grep(city, dir(src_path, full.names=TRUE), value=TRUE), 
+                                         read.csv, stringsAsFactors=FALSE))
+    dat[[city]]$city <- city
+}
+dat <- do.call(rbind, dat)
+dat[dat$Precp == 'T', "Precp"] <- '0'
+dat$Precp <- as.numeric(dat$Precp)
+
+ggplot(dat, aes(x=city, y=PrecpHour)) + geom_bar(stat="identity")
+ggplot(dat, aes(x=city, y=Precp)) + geom_bar(stat="identity")
+ggplot(dat, aes(x=city, y=SunShine)) + geom_bar(stat="identity")
+
+dd <- by(dat, dat$city, 
+         function(x) c(rainyHour=sum(x$PrecpHour), sunnyHour=sum(x$SunShine)))
+dd <- as.data.frame(do.call(rbind, dd))
+dd$city <- rownames(dd)
+dd <- reshape(dd, direction="long", varying=c("rainyHour", "sunnyHour"), 
+              idvar="city", v.names="hour", times=c("rainyHour", "sunnyHour"), timevar="status")
+ggplot(dd, aes(x=city, y=hour, fill=status)) + geom_bar(stat="identity")
+```
+
+
+## exercise: possible solution 2 (advanced)
+
+```{r, eval=FALSE}
+library(ggplot2)
+library(data.table) # need 1.9.5 => devtools:install_github("Rdatatable/data.table", build_vignettes=FALSE)
+src_path <- "./data"
+citynames <- unique(gsub("_.*", '', dir(src_path)))
+citynames <- citynames[1:4] # take english version only
+dat <- list()
+for ( city in citynames )
+    dat[[city]] <- rbindlist(lapply(grep(city, dir(src_path, full.names=TRUE), value=TRUE), fread))
+dat <- rbindlist(dat, idcol="city")
+dat[Precp == 'T', Precp:='0']
+dat[, Precp:=as.numeric(Precp)]
+
+for ( var in c("PrecpHour", "Precp", "SunShine") ) 
+    print(ggplot(dat, aes_string(x="city", y=var)) + geom_bar(stat="identity"))
+
+dd <- melt(dat[, list(PrecpHour=sum(PrecpHour), SunShine=sum(SunShine)), by="city"], 
+           id.vars="city", measure.vars=c("PrecpHour", "SunShine"), 
+           variable.name="status", value.name="hour")
+ggplot(dd, aes(x=city, y=hour, fill=status)) + geom_bar(stat="identity")
+```
+
+
+<div class="columns-2">
+## proportional stacking bar
+
+```{r, fig.retina=2, fig.width=5, fig.height=5.5, echo=FALSE}
+ggplot(data=diamonds, aes(x=color, fill=cut)) + geom_bar() + theme_minimal()
+
+diamonds$Count <- 0L
+diamondsDF <- aggregate(data=diamonds, Count ~ color + cut, FUN=length)
+diamondsDF <- do.call(rbind, lapply(split(diamondsDF, diamondsDF$color), 
+                                  function(x) within(x, pct <- Count/sum(Count))))
+ggplot(diamondsDF, aes(x=color, y=pct, fill=cut)) + geom_bar(stat='identity') + theme_minimal()
+```
+</div>
+
+
+<div class="columns-2">
+## need to transform data and then use `stat="identity"`
+
+```{r, echo=FALSE}
+diamondsDT <- as.data.table(diamonds)
+diamondsDT <- diamondsDT[, list(cnt=.N), by="color,cut"]
+diamondsDT <- diamondsDT[, pct:=cnt / sum(cnt), by="color"]
+head(diamondsDT, 20)
+```
+</div>
+
+
+## possible solution 1 | just do it: `aggregate` and `lapply`
+
+```{r}
+diamonds$cnt <- 0L
+diamondsDF <- aggregate(data=diamonds, cnt ~ color + cut, FUN=length)
+diamondsDF <- do.call(rbind, lapply(split(diamondsDF, diamondsDF$color), 
+                                  function(x) within(x, pct <- cnt / sum(cnt))))
+head(diamondsDF)
+```
+
+
+## possible solution 2 | play tricky: `table` and `by`
+
+```{r}
+DF <- as.data.frame(table(diamonds$color, diamonds$cut, dnn=list("color", "cut")))
+DF <- do.call(rbind, by(DF, DF$color, 
+                        function(x) within(x, pct <- Freq / sum(Freq))))
+head(DF)
+```
+
+
+## possible solution 3 | try `ave`
+```{r}
+diamonds$cnt <- ave(rep(1, nrow(diamonds)), diamonds$color, diamonds$cut, FUN=sum)
+diamonds$cnt_by_color <- ave(rep(1, nrow(diamonds)), diamonds$color, FUN=sum)
+diamonds <- transform(diamonds, pct=cnt / cnt_by_color)
+DFave <- unique(diamonds[,c("color", "cut", "cnt", "pct")])
+head(DFave)
+```
+
+
+## possible solution 4 | use `data.table`
+
+```{r}
+library(data.table)
+diamondsDT <- as.data.table(diamonds)
+diamondsDT <- diamondsDT[, list(cnt=.N), by="color,cut"]
+diamondsDT <- diamondsDT[, pct:=cnt / sum(cnt), by="color"]
+head(diamondsDT)
+```
+
+
+## possible solution 5 | use `dplyr`
+
+```{r, message=FALSE}
+library(dplyr)
+DP <- summarise(group_by(diamonds, color, cut), cnt=n())
+DP <- mutate(DP, pct=cnt / sum(cnt))
+head(DP)
+```
+
+
+## possible solution 6 | forever SQL
+
+```{r, message=FALSE}
+# options(gsubfn.engine='R') # try this line should you have trouble loading the package
+library(sqldf)
+tmp1 <- sqldf('select color, cut, count(*) as cnt from diamonds group by color, cut')
+tmp2 <- sqldf('select color, sum(cnt) as cnt_by_color from tmp1 group by color')
+DFSQL <- sqldf('select tmp1.color, cut, cnt, (cnt*1.0 / cnt_by_color) as pct 
+               from tmp1 join tmp2 on tmp1.color = tmp2.color')
+head(DFSQL)
+```
+
+
+## finally, proportional stacking bar
+
+```{r, fig.retina=2, echo=FALSE}
+ggplot(diamondsDF, aes(x=color, y=pct, fill=cut)) + geom_bar(stat='identity')
+```
+
+
+<div class="columns-2">
+## exercise!
+
+```{r, fig.retina=2, fig.width=5, fig.height=5.5, echo=FALSE}
+ggplot(dd, aes(x=city, y=hour, fill=status)) + geom_bar(stat="identity")
+dd2 <- do.call(rbind, by(dd, dd$city, 
+                        function(x) within(x, pct <- hour / sum(hour))))
+ggplot(dd2, aes(x=city, y=pct, fill=status)) + geom_bar(stat="identity")
+```
+</div>
+
+
+## possible solution
+```{r, eval=FALSE}
+library(ggplot2)
+dd2 <- do.call(rbind, by(dd, dd$city, 
+                        function(x) within(x, pct <- hour / sum(hour))))
+ggplot(dd2, aes(x=city, y=pct, fill=status)) + geom_bar(stat="identity")
+```
+
+
+<!--######################################################################################-->
+# Line Graph
+<!--######################################################################################-->
+
+## It's just that simple!
+```{r,fig.align='center', fig.retina=2}
+# not meaningful but plottable
+ggplot(pressure, aes(x=temperature, y=pressure)) + geom_line(size=1.5) 
+```
+
+## A Digress: Function Equivalency in `ggplot2`
++ Mnay of the parameters can be applied in multiple ways
+  + 
+  + `ggtitle('yor title')` is the same as `labs(title='your title')`
+  + See `?labs` for its equivalent calls
++ Many of the functions are siblings of a more general function
+  + `geom_vline` is the sibling of `geom_abline`
+  + `theme_bw` is a special version of `theme`
+    + The default is `theme_grey`
+
+## Let's try another sameple data
+```{r, results='hold'}
+head(WorldPhones)
+str(WorldPhones)
+```
+
+## `ggplot`: data.frame only, please!
+```{r,fig.align='center', fig.retina=2, eval=FALSE}
+ggplot(WorldPhones, aes(x=rownames(WorldPhones), y=Asia)) + geom_line()
+## Error: ggplot2 doesn't know how to deal with data of class matrix
+```
++ Remember: `ggplot` eat only data.frames
+```{r}
+WorldPhones.DF <- as.data.frame(WorldPhones)
+WorldPhones.DF$year <- rownames(WorldPhones.DF)
+class(WorldPhones.DF) # this time we should be fine!
+```
+
+## What the...?
+```{r,fig.align='center', fig.retina=2, message=FALSE}
+ggplot(WorldPhones.DF, aes(x=year, y=Asia)) + geom_line(size=1.5)
+```
+
+## Or simply make x continous, if possible
+```{r,fig.align='center', fig.retina=2}
+ggplot(WorldPhones.DF, aes(x=as.numeric(year), y=Asia)) + geom_line(size=1.5)
+```
+
+
+
+
+
+
+
+
+
+
+## Wait a minute... {.smaller}
+Were they really drawn from the same data?
+<div class="columns-2">
+
+```{r,fig.align='center', fig.retina=2, echo=FALSE,fig.width=3.5}
+ggplot(WorldPhones.DF, aes(x=year, y=Asia, group=1)) + geom_line(size=1.5)
+```
+
+
+
+```{r,fig.align='center', fig.retina=2,  echo=FALSE,fig.width=3.5}
+ggplot(WorldPhones.DF, aes(x=as.numeric(year), y=Asia)) + geom_line(size=1.5)
+```
+
+</div>
+
+
+## Can you see the difference? {.smaller}
+
+Remember? Categorical x at default will not show null data.
+
+<div class="columns-2">
+
+
+
+```{r,fig.align='center', fig.retina=2,  fig.width=3.5, echo=FALSE}
+ggplot(WorldPhones.DF, aes(x=year, y=Asia, group=1)) + geom_line(size=1.5) + 
+  geom_point(shape=19, size=3, color='red')
+```
+
+
+
+```{r,fig.align='center', fig.retina=2, fig.width=3.5, echo=FALSE}
+ggplot(WorldPhones.DF, aes(x=as.numeric(year), y=Asia)) + geom_line(size=1.5) + 
+  geom_point(shaep=19, size=3, color='red')
+```
+</div>
+
+## Multi-lining in `ggplot2`
++ Not straightforward, usually need preprocessing
+  + Only accept **long** format, against the **wide** format used in `matplot`
+
+<div class="columns-2">
+
+Wide format
+```{r,fig.align='center', fig.retina=2,   echo=FALSE}
+WorldPhones.DF[, c(1:3, 8)]
+```
+
+
+
+Long format
+```{r,fig.align='center', fig.retina=2,   echo=FALSE}
+WP <- WorldPhones.DF[, c(1:3, 8)]
+WP <- cbind(stack(WP[, 1:3]), WP$year)
+colnames(WP) <- c('Value', 'Region', 'Year')
+WP[1:8,]
+```
+
+</div>
+
+## Wide-to-long Conversion{.smaller}
+
+<div class="columns-2">
+Wide format
+```{r}
+WP=WorldPhones.DF[,c(1:3,8)]
+
+head(WP)
+```
+
+
+Long format (with melt)
+```{r}
+WP.long=melt(WP,id.vars='year')
+# 以melt將資料轉換成Long Format，以id.vars保留欄位
+colnames(WP.long)= 
+  c('Year','Region','Value')
+head(WP.long)
+```
+
+</div>
+
+## The rest is easy!
+
+
+```{r,fig.align='center', fig.retina=2,   echo=TRUE}
+WP.long$Year <- as.integer(as.character(WP.long$Year))
+ggplot(WP.long, aes(x=Year, y=Value, color=Region)) + geom_line(size=1.5)
+```
+
+
+## More grouping var: linetype {.vcenter}
+```{r,fig.align='center', fig.retina=2}
+ggplot(WP.long, aes(x=Year, y=Value, linetype=Region))+
+  geom_line(size=1.5)
+```
+
+
+## Again, beware of categorical x!
+```{r,fig.align='center', fig.retina=2}
+ggplot(WP.long,aes(x=factor(Year), y=Value))+
+  geom_line(aes(linetype=Region,group=Region),size=1.5)
+```
+
+## Reverse order of legend labels
+```{r,fig.align='center', fig.retina=2}
+ggplot(WP.long, aes(x=Year, y=Value, linetype=Region)) + geom_line(size=1.5) +
+  guides(linetype=guide_legend(reverse=TRUE))
+```
+
+
+## Exercise: Humidity!
+
+```{r, fig.retina=2,  fig.align='center',echo=FALSE,fig.height=5,fig.width=9}
+load("./rdata/humidity.RData")
+# humidity=iconv(humidity,'big5','utf8')
+ggplot(humidity,aes(x=date,y=humidity))+
+  geom_line(aes(group=location,colour=location),size=1.5)+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1,vjust=0.5),text=element_text(size=20))
+```
+
+
+## Exercise: Humidity!- Answer
+
+```{r, fig.retina=2,  fig.align='center',echo=TRUE,fig.height=5,fig.width=9,eval=FALSE}
+load('humidity.RData') #load the file
+ggplot(humidity,aes(x=date,y=humidity))+
+  # 按照location畫圖與填色
+  geom_line(aes(group=location,colour=location),size=1.5)+
+  # 調整X軸label的文字大小與角度
+  theme(axis.text.x = element_text(angle = 90, hjust = 1,vjust=0.5),text=element_text(size=20))
+```
+
+
+
+## The Anatomy of a Plot 
+
+<img src='./img/anatomy.png' width=900 align='center'></img>
+
+## The Anatomy of a Plot {.vcenter}
+
+<img src='./img/annotate.png' width=800 align='center'></img>
+
+## Data and Mapping
+
+```{r,eval=FALSE}
+ggplot(data=humidity)+geom_line(aes(x=date,y=humidity))
+```
+
+<div class="columns-2">
+
+data
+```{r,echo=FALSE}
+humidity$date=as.Date(humidity$date)
+head(humidity[,-1])
+```
+
+mapping: aes(x=...,y=...)
+```{r,echo=FALSE}
+head(humidity[,c(2,4)])
+```
+
+</div>
+
+## <font color='red'>geom</font>etric
+
+<div class="columns-2">
+
+geom_line
+```{r,fig.width=5,fig.height=4}
+ggplot(humidity,aes(x=date,y=humidity))+
+geom_line(aes(group=location))
+```
+
+
+
+geom_point
+```{r,fig.width=5,fig.height=4}
+ggplot(humidity,aes(x=date,y=humidity))+
+geom_point()
+```
+
+</div>
+
+## <font color='red'>scale</font>{.smaller}
+
+<div class="columns-2">
+
+```{r,fig.width=5}
+ggplot(humidity,aes(x=date,y=humidity))+
+geom_line(aes(group=location))
+```
+
+
+```{r,fig.width=5}
+ggplot(humidity,aes(x=date,y=humidity))+
+  geom_line(aes(group=location))+
+  scale_x_date(breaks = "2 weeks")
+```
+
+</div>
+
+
+## <font color='red'>stat</font>istics
+
+```{r,fig.align='center'}
+ ggplot(pressure,aes(x=temperature,y=pressure))+
+  geom_point()+
+  stat_smooth()
+```
+
+
+## <font color='red'>coord</font>inante 
+```{r,fig.align='center'}
+hum=filter(humidity,rainfall>0) %>% select(location,rainfall) %>% 
+  group_by(location) %>% summarise(ave.rain=mean(rainfall))
+ggplot(hum,aes(x=location,y=ave.rain))+geom_bar(aes(fill=location),stat='identity')
+```
+
+## <font color='red'>coord</font>inante
+
+```{r,fig.align='center'}
+ggplot(hum,aes(x=location,y=ave.rain))+
+  geom_bar(aes(fill=location),stat='identity')+
+  coord_polar(theta='y')
+```
+
+
+
+## <font color='red'>coord</font>inante
+```{r,fig.align='center'}
+ggplot(hum,aes(x="",y=ave.rain))+
+  geom_bar(aes(fill=location),stat='identity')+
+  coord_polar(theta='y')
+```
+
+## <font color='red'>facet</font> {.smaller}
+
+
+```{r,echo=FALSE,fig.align='center'}
+ggplot(humidity,aes(x=date,y=humidity))+
+  geom_line(aes(group=location,colour=location),size=1.5)+
+  scale_x_date(breaks = "7 days",labels = date_format("%m/%d"))
+```
+
+## <font color='red'>facet</font> {.smaller}
+
+
+```{r,fig.align='center'}
+ggplot(humidity,aes(x=date,y=humidity))+
+  geom_line(aes(group=location,colour=location),size=1.5)+
+  scale_x_date(breaks = "7 days",labels = date_format("%m/%d"))+
+  facet_wrap(~location)
+```
+
+## <font color='red'>theme</font>
+
+- 控制圖中的元素與主題
+
+```{r, fig.align='center'}
+ ggplot(humidity,aes(x=date,y=humidity))+
+   geom_line(aes(group=location,colour=location),size=1.5)+
+  theme_light(base_size = 20)
+```
+
+
+<!--######################################################################################-->
+# Scatter Plot
+<!--######################################################################################-->
+
+## IMDB data
+```{r}
+movies1 <- movies[!is.na(movies$budget),]
+ggplot(movies1, aes(x=budget, y=rating)) + geom_point()
+```
+
+
+## Control the shape & size of points
+```{r}
+ggplot(movies1, aes(x=budget, y=rating)) + geom_point(shape=5, size=3)
+```
+
+
+## All point shape types in `ggplot2`
+```{r,fig.align='center', fig.retina=2, fig.height=5, fig.width=5, echo=FALSE}
+spoint <- data.frame(x=1,y=1)
+symbol_points <- list()
+for (i in 1:25) {
+    symbol_points[[i]] <- ggplot(spoint, aes(x=x,y=y)) + 
+        geom_point(shape=i, size=5) +
+        ggtitle(sprintf('shape=%s',i)) + 
+        theme(axis.text.x=element_blank(), axis.text.y=element_blank()) +
+        xlab(NULL) + ylab(NULL)
+}
+symbols <- do.call(arrangeGrob,symbol_points)
+symbols
+```
+
+
+## Grouping: by binary variable
+
+This usually happens accidentally.
+
+```{r}
+ggplot(movies1, aes(x=budget, y=rating, color=Action)) + geom_point()
+```
+
+    
+## Grouping: by categarical variable
+```{r}
+ggplot(movies1, aes(x=budget, y=rating, color=factor(Action))) + 
+    geom_point() + labs(color='Action Movie?')
+```
+
+    
+## Multi-grouping
+```{r}
+ggplot(movies1, aes(x=budget, y=rating, color=factor(Action), shape=(length > 120))) + 
+    geom_point(size=3) + labs(color='Action Movie?')
+```
+
+
+## Fit regression line
+```{r}
+ggplot(movies, aes(x=votes, y=rating)) + geom_point() +
+    stat_smooth(method=lm, level=.95) # add se=FALSE to disable CI
+```
+
+
+## The default is a polynomial fit
+```{r message=FALSE}
+ggplot(movies, aes(x=votes, y=rating)) + geom_point() + stat_smooth()
+```
+
+
+## Fitting is smart to align with grouping
+```{r}
+ggplot(movies1, aes(x=budget, y=rating, color=factor(Action))) + 
+    geom_point() + labs(color='Action Movie?') + stat_smooth(method=lm, se=FALSE)
+```
+
+
+## What if the model is pre-computed?
+```{r}
+lm_model <- lm(rating ~ budget, data=movies1)
+ggplot(movies1, aes(x=budget, y=rating)) + geom_point() +
+    geom_line(aes(x=budget, y=lm_model$fitted.values), color='blue')
+```
+
+
+## Scatter plot "as is": Using `geom_text`
+```{r}
+starmovies <- movies[movies$votes > mean(movies$votes),]
+starmovies <- starmovies[order(-starmovies$rating),][1:10,]
+ggplot(starmovies, aes(x=votes, y=rating)) + geom_point() + geom_text(aes(label=title))
+```
+
+
+## Fine-tune
+```{r}
+ggplot(starmovies, aes(x=votes, y=rating)) + geom_point(color='red') + 
+    geom_text(aes(label=title), hjust=0, vjust=0, angle=20) +
+    xlim(0, max(starmovies$votes)*2) +
+    ylim(min(starmovies$rating), 9.2)
+```
+
+
+## Which Type of Film Cost the Most in Average?
+
+We only choose the movies with single type to simplify the question.
+
+```{r}
+movietype <- colnames(movies)[18:24]
+movies1_singletype <- movies1[rowSums(movies1[, movietype]) == 1,] # remove multi-typed
+movietype_alt <- c(movietype[length(movietype)], movietype[-length(movietype)]) 
+# convert multiple dummies into one factor as grouping var
+# a little matrix operation will do the trick
+dummies <- as.matrix(movies1_singletype[, movietype_alt])
+movies1_singletype$Type <- factor(dummies %*% (1:length(movietype_alt)), labels=movietype_alt)
+
+# Compute the Average Budget of Each Type
+tapply(movies1_singletype$budget, movies1_singletype$Type, mean)
+```
+
+
+## Determine the variation
+
+The first factor level of movietype, `Short`, is represented as the intercept term. 
+
+```{r}
+lmfit <- lm(as.formula("budget ~ Type"), movies1_singletype)
+summary(lmfit)$coef
+```
+
+
+## Another way to estimate the coefficients
+
+The last predictor, `Short` is combined into the intercept term.
+
+```{r}
+# mean(movies1_singletype[movies1_singletype$Animation == 1, 'budget'])
+lmfit <- lm(as.formula(paste('budget ~', paste(movietype, collapse=' + '))), 
+            movies1_singletype)
+summary(lmfit)$coef
+```
+
+
+## Draw the regression lines of each type
+
+What is the association between cost and rating, conditional on type?
+
+```{r}
+movies1_reg_plot <- ggplot(movies1_singletype, aes(x=budget, y=rating, color=Type)) + 
+  geom_point(shape=1) +
+  
+  # set fullrange=T will extend the fitted line outside the sample range
+  stat_smooth(method=lm, se=FALSE, fullrange=FALSE, size=1.5) +
+  
+  # color is the grouping interface, hence scale_color_*
+  scale_color_discrete(name='Movie Type: # of samples', 
+                       labels=paste(levels(movies1_singletype$Type), ': ', 
+                                    table(movies1_singletype$Type)))
+```
+
+
+## Output 
+
+```{r}
+movies1_reg_plot
+```
+
+
+## Exercise: Temprature and RH
+
+Draw a scatter plot of Temprature and RH in Taipei, Taichung, 
+Kaoshiung and Hualien in 2013-05, 2014-05 and 2015-05.
+Furthermore, each location has its own color and regression line.
+
+Hint: Use following code to read all data and slice the data you want.
+
+```{r}
+source("R/get_weather_all.R")
+weather_all <- get_weather_all()
+may <- weather_all[weather_all$month == "May",]
+```
+
+## Answer
+
+```{r}
+ggplot(may, aes(x=RH, y=Temperature, color=location)) + 
+    geom_point(shape=1) + 
+    stat_smooth(method = lm, size = 1.5)
+```
+
+```{r include=FALSE}
+lmfit <- lm(Temperature ~ RH*location, may)
+summary(lmfit)
+```
+
+## The regression problem behind the scene
+```{r}
+interact_terms <- paste(paste(movietype, '*budget', sep=''), collapse=' + ')
+lmfit <- lm(as.formula(paste('rating ~', interact_terms)), movies1_singletype)
+tail(summary(lmfit)$coef)
+```
++ None of the interactive term is statistically significant, indeed
++ <span class="red">Visualization != Analysis</span> (Our eyes were not born to work on numbers.)
++ Plots can be easily manipluated to be misleading, accidentally or <span class="red">on purpose</span>
+
+
+## References
++ [ggplot2 Official document](http://ggplot2.org/)
++ [R Graphics Cookbook](http://www.cookbook-r.com/Graphs/)
++ [Introduction to Programming R](https://github.com/everdark/lecture_rintro)
+    + Knowlege of general programming is requisite
+
+
+# Bonus: Annotation
+
+## Annotation
+```{r}
+plot(movies1$budget, movies1$rating) # base solution
+abline(h=median(movies1$rating), col='red')
+text(x=max(movies1$budget)*.9, y=median(movies1$rating), 
+     labels='Median of Rating', col='red', pos=1)
+```
+
+
+## Annotation: Add lines
+```{r fig.show='hold',fig.height=3.5}
+brggp <- ggplot(movies1, aes(x=budget, y=rating)) + geom_point() 
+brggp + geom_hline(yintercept=median(movies1$rating)) # ?geom_abline for general setup
+# brggp + geom_hline(data=movies1, aes(yintercept=median(rating)))  # the same
+# brggp + geom_hline(aes(yintercept=median(movies1$rating)))        # the same
+```
+
+
+## Annotation: Add (single) texts
+```{r,fig.show='hold',fig.height=3.5}
+brggp + geom_hline(yintercept=median(movies1$rating), color='red') + 
+  annotate('text', x=Inf, y=median(movies1$rating), 
+           label='Medaion of Rating', color='red', vjust=1.2, hjust=1)
+# Don't use geom_text for single annotation to avoid overplotting
+```
+
+
+## Annotation: Add segments
+```{r,fig.height=3.5}
+shaw <- movies1[grep('Shawshank Redemption', movies1$title, fixed=TRUE),]
+brggp + annotate('segment', xend=shaw$budget, yend=shaw$rating, x=Inf, y=-Inf,
+                 arrow=grid::arrow(), color='red') +
+  annotate('text', label='The Shawshank Redemption?', x=Inf, y=-Inf,
+           hjust=1.5, vjust=-1, color='red')
+```
+
+
+## Annotation: Add shaded area
+```{r,fig.height=3.5}
+yearcount <- aggregate(title ~ year, data=movies, FUN=length)
+ggplot(yearcount, aes(x=year, y=title)) + geom_line() +
+  annotate('rect', xmin=1990, xmax=2000, ymin=-Inf, ymax=Inf, fill='blue', alpha=.25)
+```
+
+# Bonus: Facet / Multi-plotting
+
+
+## Facet: Single grouping
+```{r,message=FALSE}
+gg <- ggplot(movies1_singletype, aes(x=rating, y=..density..)) + geom_bar()
+gg + facet_grid(Action ~ .) # Plot with grouping variable in different window (Vertical)
+```
+
+
+## Facet: Single grouping
+```{r,message=FALSE, results='hold'}
+# Plot with grouping variable in different window (Horizontal)
+gg + facet_grid(. ~ Action) 
+```
+
+
+## Facet: Multiple grouping
+```{r,message=FALSE}
+movies1_singletype$modern <- (movies1_singletype$year > 2000)
+ggplot(movies1_singletype, aes(x=rating, y=..density..)) + 
+  geom_bar() + facet_grid(modern ~ Action)
+```
+
+
+## Facet: Multi-layer grouping
+```{r,message=FALSE}
+movies1_singletype$rated <- (movies1_singletype$mpaa != '')
+ggplot(movies1_singletype, aes(x=rating, color=modern)) + 
+  geom_line(stat="density") + facet_grid(Type ~ rated)
+```
+
+
+## Facet: Change labels
++ Way 1: Change the grouping var in data.frame to reflect the alternate labels
++ Way 2: Write customized labeller function for `facet_grid`
+```{r,message=FALSE}
+print(label_value) # the default labeller plugg in facet_grid(..., labeller)
+mylabeller <- function(variable, value){
+  if ( variable=='rated' ) 
+    value <- ifelse(value == TRUE, 'Rated Movies', 'Unrated Movies')
+  else if ( variable=='Type' ) 
+    as.character(value)
+}
+```
+
+
+## Facet: Change labels
+```{r,message=FALSE}
+ggplot(movies1_singletype, aes(x=rating, color=modern)) +
+  geom_line(stat="density") + facet_grid(Type ~ rated, labeller=mylabeller)
+```
+
+
+## Multi-plotting by `gridExtra` (1/3)
+
+```{r,fig.align='center', fig.retina=2, fig.height=2, fig.width=2}
+library(gridExtra)
+drawPoint <- function(i) {
+  ggplot(data.frame(x=1, y=1), aes(x=x,y=y)) + 
+    geom_point(shape=i, size=5) +
+    ggtitle(sprintf('shape=%s',i)) + 
+    theme(axis.text.x=element_blank(), axis.text.y=element_blank()) +
+    xlab(NULL) + ylab(NULL)
+  }
+drawPoint(25)
+```
+
+
+## Multi-plotting by `gridExtra` (2/3)
+
+```{r,fig.align='center', fig.retina=2, fig.height=5.5, fig.width=5.5, fig.show='hide'}
+symbol_points <- mapply(drawPoint, 1:25, SIMPLIFY=FALSE)
+symbols <- do.call(arrangeGrob, symbol_points)
+symbols
+```
+
+
+## Multi-plotting by `gridExtra` (3/3)
+
+```{r,fig.align='center', fig.retina=2, fig.height=5.5, fig.width=5.5, echo=FALSE}
+symbols
+```
+
