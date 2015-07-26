@@ -647,13 +647,7 @@ ggplot(WP.long, aes(x=Year, y=Value, linetype=Region)) + geom_line(size=1.5) +
 ## Exercise: Humidity!
 
 ```{r, fig.retina=2,  fig.align='center',echo=FALSE,fig.height=5,fig.width=9}
-# load("./rdata/humidity.RData")
-# # humidity=iconv(humidity,'big5','utf8')
-# ggplot(humidity,aes(x=date,y=humidity))+
-#   geom_line(aes(group=location,colour=location),size=1.5)+
-#   theme(axis.text.x = element_text(angle = 90, hjust = 1,vjust=0.5),text=element_text(size=20))
-
-load("rdata/for_exercise.RData")    #load sample data named dat
+load("rdata/dat.RData")    #load sample data named dat
 dat$date = as.Date(substr(dat$T.Max.Time, 1, 10))   # generate date
 dat$city = factor(dat$city) # set city as actor
 ggplot(dat,aes(x=date,y=RH))+
@@ -667,7 +661,7 @@ ggplot(dat,aes(x=date,y=RH))+
 ## Exercise: Humidity!- Answer
 
 ```{r, fig.retina=2,  fig.align='center',echo=TRUE,fig.height=5,fig.width=9,eval=FALSE}
-load("rdata/for_exercise.RData")    #load sample data named dat
+load("rdata/dat.RData")    #load sample data named dat
 dat$date = as.Date(substr(dat$T.Max.Time, 1, 10))   # generate date
 dat$city = factor(dat$city) # set city as actor
 ggplot(dat,aes(x=date,y=RH))+
@@ -853,7 +847,7 @@ Furthermore, each location has its own color and regression line.
 Hint: Use following code to read all data and slice the data you want.
 
 ```{r}
-load("rdata/for_exercise.RData")    # load sample data names dat
+load("rdata/dat.RData")    # load sample data names dat
 dat$month <- substr(dat$T.Max.Time, 6, 7)
 dat <- dat[dat$month == "05",]
 ```
@@ -907,6 +901,7 @@ ggplot(data=humidity)+geom_line(aes(x=date,y=humidity))
 
 data
 ```{r,echo=FALSE}
+load("rdata/humidity.RData")
 humidity$date=as.Date(humidity$date)
 head(humidity[,-1])
 ```

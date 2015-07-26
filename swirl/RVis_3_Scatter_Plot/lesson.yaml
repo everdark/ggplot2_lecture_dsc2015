@@ -1,0 +1,95 @@
+- Class: meta
+  Course: DSC2015
+  Lesson: "ggplot2 - Scatter Plot" 
+  Author: Mansun Kuo
+  Type: Standard
+  Organization: DSC 2015 R Tutorial
+  Version: 0.1
+
+- Class: text
+  Output: 相信大家都已經熟悉ggplot2的基本操作了吧
+  
+- Class: text
+  Output: 接下來我們來練習怎樣繪製Scatter Plot
+  
+- Class: cmd_question
+  Output: 首先我們先使用load讀入範例資料dat，請輸入 load("rdata/dat.RData")
+  CorrectAnswer: load("rdata/dat.RData")
+  AnswerTests: any_of_exprs('load("rdata/dat.RData")')
+  Hint: load("rdata/dat.RData")
+  
+- Class: cmd_question
+  Output: dat是一個data.frame，我們可以使用 str() 來看看這個data.frame的結構，請輸入 str(dat)
+  CorrectAnswer: str(dat)
+  AnswerTests: omnitest(correctExpr='str(dat)')
+  Hint: str(dat)
+  
+- Class: text
+  Output: 你應該已經看到我們的範例資料了，其中T.Max是最高溫，T.Max.Time是每天最高溫發生的時間，RH則是相對濕度
+  
+- Class: text
+  Output: 接下來，我們要先從T.Max.Time取出月份的資訊，該欄位的格式是YYYY-mm-dd HH:MM，所以我們取出其中第6~7個字元即可
+
+- Class: cmd_question
+  Output: 使用substr即可做到這件事，請輸入 dat$month <- substr(dat$T.Max.Time, 6, 7)
+  CorrectAnswer: str(dat$month <- substr(dat$T.Max.Time, 6, 7))
+  AnswerTests: omnitest(correctExpr='dat$month <- substr(dat$T.Max.Time, 6, 7)')
+  Hint: dat$month <- substr(dat$T.Max.Time, 6, 7)
+
+- Class: cmd_question
+  Output: 再來我們選出五月的資料，請輸入 dat <- dat[dat$month == "05",]
+  CorrectAnswer: str(dat <- dat[dat$month == "05",])
+  AnswerTests: omnitest(correctExpr='dat <- dat[dat$month == "05",]')
+  Hint: dat <- dat[dat$month == "05",]
+
+- Class: text
+  Output: 現在dat這個data.frame裡面只剩下所有五月份的資料，來試著繪製不同城市最高溫和相對濕度的散佈圖吧
+
+- Class: text
+  Output: 基本的語法是ggplot(data, aes(x=...,y=...,color=...)) + geom_point()
+
+- Class: text
+  Output: 首先先做出我們的ggplot物件
+
+- Class: cmd_question
+  Output: 請輸入 scatter <- ggplot(dat, aes(x=RH, y=Temperature, color=city))
+  CorrectAnswer: str(scatter <- ggplot(dat, aes(x=RH, y=Temperature, color=city)))
+  AnswerTests: omnitest(correctExpr='scatter <- ggplot(dat, aes(x=RH, y=Temperature, color=city))')
+  Hint: scatter <- ggplot(dat, aes(x=RH, y=Temperature, color=city))
+
+- Class: text
+  Output: 現在scatter這個物件已經有我們繪製圖形所需要的資訊了，我們可以在上面疊上不同的圖層
+
+- Class: cmd_question
+  Output: 先來繪製最基本的散佈圖，請輸入 scatter + geom_point()
+  CorrectAnswer: str(scatter + geom_point())
+  AnswerTests: omnitest(correctExpr='scatter + geom_point()')
+  Hint: scatter + geom_point()
+
+- Class: cmd_question
+  Output: 可以試著改變散步圖的形狀，請輸入 scatter + geom_point(shape=1)
+  CorrectAnswer: str(scatter + geom_point(shape=1))
+  AnswerTests: omnitest(correctExpr='scatter + geom_point(shape=1)')
+  Hint: scatter + geom_point(shape=1)
+
+- Class: cmd_question
+  Output: 接著來試著加上不同地區的趨勢線，請輸入 scatter + geom_point(shape=1) + stat_smooth()
+  CorrectAnswer: str(scatter + geom_point(shape=1) + stat_smooth())
+  AnswerTests: omnitest(correctExpr='scatter + geom_point(shape=1) + stat_smooth()')
+  Hint: scatter + geom_point(shape=1) + stat_smooth()
+
+- Class: text
+  Output: stat_smooth預設是使用loess smoother來繪製趨勢線
+
+- Class: text
+  Output: 再來我們試著來繪製簡單迴歸的趨勢線，並把線的粗細調粗一點
+
+- Class: cmd_question
+  Output: ，請輸入 scatter + geom_point(shape=1) + stat_smooth(method = lm, size = 1.5)
+  CorrectAnswer: str(scatter + geom_point(shape=1) + stat_smooth(method = lm, size = 1.5))
+  AnswerTests: omnitest(correctExpr='scatter + geom_point(shape=1) + stat_smooth(method = lm, size = 1.5)')
+  Hint: scatter + geom_point(shape=1) + stat_smooth(method = lm, size = 1.5)
+
+- Class: text
+  Output: 這樣子就完成了，是不是很簡單啊～
+  
