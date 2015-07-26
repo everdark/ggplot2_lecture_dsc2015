@@ -31,6 +31,7 @@ library(dplyr)
 library(data.table)
 library(reshape2)
 library(scales)
+library(sqldf)
 ```
 
 
@@ -310,17 +311,8 @@ ggplot(dd, aes(x=city, y=hour, fill=status)) + geom_bar(stat="identity")
 ## exercise: possible solution 1 (basic)
 
 ```{r, eval=FALSE}
-librart(ggplot2)
-src_path <- "./data"
-citynames <- unique(gsub("_.*", '', dir(src_path)))
-citynames <- citynames[1:4] # take english version only
-dat <- list()
-for ( city in citynames ) {
-    dat[[city]] <- do.call(rbind, lapply(grep(city, dir(src_path, full.names=TRUE), value=TRUE), 
-                                         read.csv, stringsAsFactors=FALSE))
-    dat[[city]]$city <- city
-}
-dat <- do.call(rbind, dat)
+library(ggplot2)
+source("./R/load-all.R")
 dat[dat$Precp == 'T', "Precp"] <- '0'
 dat$Precp <- as.numeric(dat$Precp)
 
@@ -481,348 +473,6 @@ dd2 <- do.call(rbind, by(dd, dd$city,
                         function(x) within(x, pct <- hour / sum(hour))))
 ggplot(dd2, aes(x=city, y=pct, fill=status)) + geom_bar(stat="identity")
 ```
-
-<!--######################################################################################-->
-# Scatter Plot
-<!--######################################################################################-->
-
-## IMDB data
-```{r}
-movies1 <- movies[!is.na(movies$budget),]
-ggplot(movies1, aes(x=budget, y=rating)) + geom_point()
-```
-
-
-## Control the shape & size of points
-```{r}
-ggplot(movies1, aes(x=budget, y=rating)) + geom_point(shape=5, size=3)
-```
-
-
-## All point shape types in `ggplot2`
-```{r,fig.align='center', fig.retina=2, fig.height=5, fig.width=5, echo=FALSE}
-spoint <- data.frame(x=1,y=1)
-symbol_points <- list()
-for (i in 1:25) {
-    symbol_points[[i]] <- ggplot(spoint, aes(x=x,y=y)) + 
-        geom_point(shape=i, size=5) +
-        ggtitle(sprintf('shape=%s',i)) + 
-        theme(axis.text.x=element_blank(), axis.text.y=element_blank()) +
-        xlab(NULL) + ylab(NULL)
-}
-symbols <- do.call(arrangeGrob,symbol_points)
-symbols
-```
-
-
-## Grouping: by binary variable
-
-This usually happens accidentally.
-
-```{r}
-ggplot(movies1, aes(x=budget, y=rating, color=Action)) + geom_point()
-```
-
-    
-## Grouping: by categarical variable
-```{r}
-ggplot(movies1, aes(x=budget, y=rating, color=factor(Action))) + 
-    geom_point() + labs(color='Action Movie?')
-```
-
-    
-## Multi-grouping
-```{r}
-ggplot(movies1, aes(x=budget, y=rating, color=factor(Action), shape=(length > 120))) + 
-    geom_point(size=3) + labs(color='Action Movie?')
-```
-
-
-## Fit regression line
-```{r}
-ggplot(movies, aes(x=votes, y=rating)) + geom_point() +
-    stat_smooth(method=lm, level=.95) # add se=FALSE to disable CI
-```
-
-
-## The default is a polynomial fit
-```{r message=FALSE}
-ggplot(movies, aes(x=votes, y=rating)) + geom_point() + stat_smooth()
-```
-
-
-## Fitting is smart to align with grouping
-```{r}
-ggplot(movies1, aes(x=budget, y=rating, color=factor(Action))) + 
-    geom_point() + labs(color='Action Movie?') + stat_smooth(method=lm, se=FALSE)
-```
-
-
-## What if the model is pre-computed?
-```{r}
-lm_model <- lm(rating ~ budget, data=movies1)
-ggplot(movies1, aes(x=budget, y=rating)) + geom_point() +
-    geom_line(aes(x=budget, y=lm_model$fitted.values), color='blue')
-```
-
-
-## Scatter plot "as is": Using `geom_text`
-```{r}
-starmovies <- movies[movies$votes > mean(movies$votes),]
-starmovies <- starmovies[order(-starmovies$rating),][1:10,]
-ggplot(starmovies, aes(x=votes, y=rating)) + geom_point() + geom_text(aes(label=title))
-```
-
-
-## Fine-tune
-```{r}
-ggplot(starmovies, aes(x=votes, y=rating)) + geom_point(color='red') + 
-    geom_text(aes(label=title), hjust=0, vjust=0, angle=20) +
-    xlim(0, max(starmovies$votes)*2) +
-    ylim(min(starmovies$rating), 9.2)
-```
-
-
-## Which Type of Film Cost the Most in Average?
-
-We only choose the movies with single type to simplify the question.
-
-```{r}
-movietype <- colnames(movies)[18:24]
-movies1_singletype <- movies1[rowSums(movies1[, movietype]) == 1,] # remove multi-typed
-movietype_alt <- c(movietype[length(movietype)], movietype[-length(movietype)]) 
-# convert multiple dummies into one factor as grouping var
-# a little matrix operation will do the trick
-dummies <- as.matrix(movies1_singletype[, movietype_alt])
-movies1_singletype$Type <- factor(dummies %*% (1:length(movietype_alt)), labels=movietype_alt)
-
-# Compute the Average Budget of Each Type
-tapply(movies1_singletype$budget, movies1_singletype$Type, mean)
-```
-
-
-## Determine the variation
-
-The first factor level of movietype, `Short`, is represented as the intercept term. 
-
-```{r}
-lmfit <- lm(as.formula("budget ~ Type"), movies1_singletype)
-summary(lmfit)$coef
-```
-
-
-## Another way to estimate the coefficients
-
-The last predictor, `Short` is combined into the intercept term.
-
-```{r}
-# mean(movies1_singletype[movies1_singletype$Animation == 1, 'budget'])
-lmfit <- lm(as.formula(paste('budget ~', paste(movietype, collapse=' + '))), 
-            movies1_singletype)
-summary(lmfit)$coef
-```
-
-
-## Draw the regression lines of each type
-
-What is the association between cost and rating, conditional on type?
-
-```{r}
-movies1_reg_plot <- ggplot(movies1_singletype, aes(x=budget, y=rating, color=Type)) + 
-  geom_point(shape=1) +
-  
-  # set fullrange=T will extend the fitted line outside the sample range
-  stat_smooth(method=lm, se=FALSE, fullrange=FALSE, size=1.5) +
-  
-  # color is the grouping interface, hence scale_color_*
-  scale_color_discrete(name='Movie Type: # of samples', 
-                       labels=paste(levels(movies1_singletype$Type), ': ', 
-                                    table(movies1_singletype$Type)))
-```
-
-
-## Output 
-
-```{r}
-movies1_reg_plot
-```
-
-
-## Exercise: Temprature and RH
-
-Draw a scatter plot of Temprature and RH in Taipei, Taichung, 
-Kaoshiung and Hualien in 2013-05, 2014-05 and 2015-05.
-Furthermore, each location has its own color and regression line.
-
-Hint: Use following code to read all data and slice the data you want.
-
-```{r}
-source("R/get_weather_all.R")
-weather_all <- get_weather_all()
-may <- weather_all[weather_all$month == "五月",]
-```
-
-## Answer
-
-```{r}
-ggplot(may, aes(x=RH, y=Temperature, color=location)) + 
-    geom_point(shape=1) + 
-    stat_smooth(method = lm, size = 1.5)
-```
-
-```{r include=FALSE}
-lmfit <- lm(Temperature ~ RH*location, may)
-summary(lmfit)
-```
-
-## The regression problem behind the scene
-```{r}
-interact_terms <- paste(paste(movietype, '*budget', sep=''), collapse=' + ')
-lmfit <- lm(as.formula(paste('rating ~', interact_terms)), movies1_singletype)
-tail(summary(lmfit)$coef)
-```
-+ None of the interactive term is statistically significant, indeed
-+ <span class="red">Visualization != Analysis</span> (Our eyes were not born to work on numbers.)
-+ Plots can be easily manipluated to be misleading, accidentally or <span class="red">on purpose</span>
-
-
-## References
-+ [ggplot2 Official document](http://ggplot2.org/)
-+ [R Graphics Cookbook](http://www.cookbook-r.com/Graphs/)
-+ [Introduction to Programming R](https://github.com/everdark/lecture_rintro)
-    + Knowlege of general programming is requisite
-
-
-# Bonus: Annotation
-
-## Annotation
-```{r}
-plot(movies1$budget, movies1$rating) # base solution
-abline(h=median(movies1$rating), col='red')
-text(x=max(movies1$budget)*.9, y=median(movies1$rating), 
-     labels='Median of Rating', col='red', pos=1)
-```
-
-
-## Annotation: Add lines
-```{r fig.show='hold',fig.height=3.5}
-brggp <- ggplot(movies1, aes(x=budget, y=rating)) + geom_point() 
-brggp + geom_hline(yintercept=median(movies1$rating)) # ?geom_abline for general setup
-# brggp + geom_hline(data=movies1, aes(yintercept=median(rating)))  # the same
-# brggp + geom_hline(aes(yintercept=median(movies1$rating)))        # the same
-```
-
-
-## Annotation: Add (single) texts
-```{r,fig.show='hold',fig.height=3.5}
-brggp + geom_hline(yintercept=median(movies1$rating), color='red') + 
-  annotate('text', x=Inf, y=median(movies1$rating), 
-           label='Medaion of Rating', color='red', vjust=1.2, hjust=1)
-# Don't use geom_text for single annotation to avoid overplotting
-```
-
-
-## Annotation: Add segments
-```{r,fig.height=3.5}
-shaw <- movies1[grep('Shawshank Redemption', movies1$title, fixed=TRUE),]
-brggp + annotate('segment', xend=shaw$budget, yend=shaw$rating, x=Inf, y=-Inf,
-                 arrow=grid::arrow(), color='red') +
-  annotate('text', label='The Shawshank Redemption?', x=Inf, y=-Inf,
-           hjust=1.5, vjust=-1, color='red')
-```
-
-
-## Annotation: Add shaded area
-```{r,fig.height=3.5}
-yearcount <- aggregate(title ~ year, data=movies, FUN=length)
-ggplot(yearcount, aes(x=year, y=title)) + geom_line() +
-  annotate('rect', xmin=1990, xmax=2000, ymin=-Inf, ymax=Inf, fill='blue', alpha=.25)
-```
-
-# Bonus: Facet / Multi-plotting
-
-
-## Facet: Single grouping
-```{r,message=FALSE}
-gg <- ggplot(movies1_singletype, aes(x=rating, y=..density..)) + geom_bar()
-gg + facet_grid(Action ~ .) # Plot with grouping variable in different window (Vertical)
-```
-
-
-## Facet: Single grouping
-```{r,message=FALSE, results='hold'}
-# Plot with grouping variable in different window (Horizontal)
-gg + facet_grid(. ~ Action) 
-```
-
-
-## Facet: Multiple grouping
-```{r,message=FALSE}
-movies1_singletype$modern <- (movies1_singletype$year > 2000)
-ggplot(movies1_singletype, aes(x=rating, y=..density..)) + 
-  geom_bar() + facet_grid(modern ~ Action)
-```
-
-
-## Facet: Multi-layer grouping
-```{r,message=FALSE}
-movies1_singletype$rated <- (movies1_singletype$mpaa != '')
-ggplot(movies1_singletype, aes(x=rating, color=modern)) + 
-  geom_line(stat="density") + facet_grid(Type ~ rated)
-```
-
-
-## Facet: Change labels
-+ Way 1: Change the grouping var in data.frame to reflect the alternate labels
-+ Way 2: Write customized labeller function for `facet_grid`
-```{r,message=FALSE}
-print(label_value) # the default labeller plugg in facet_grid(..., labeller)
-mylabeller <- function(variable, value){
-  if ( variable=='rated' ) 
-    value <- ifelse(value == TRUE, 'Rated Movies', 'Unrated Movies')
-  else if ( variable=='Type' ) 
-    as.character(value)
-}
-```
-
-
-## Facet: Change labels
-```{r,message=FALSE}
-ggplot(movies1_singletype, aes(x=rating, color=modern)) +
-  geom_line(stat="density") + facet_grid(Type ~ rated, labeller=mylabeller)
-```
-
-
-## Multi-plotting by `gridExtra` (1/3)
-
-```{r,fig.align='center', fig.retina=2, fig.height=2, fig.width=2}
-library(gridExtra)
-drawPoint <- function(i) {
-  ggplot(data.frame(x=1, y=1), aes(x=x,y=y)) + 
-    geom_point(shape=i, size=5) +
-    ggtitle(sprintf('shape=%s',i)) + 
-    theme(axis.text.x=element_blank(), axis.text.y=element_blank()) +
-    xlab(NULL) + ylab(NULL)
-  }
-drawPoint(25)
-```
-
-
-## Multi-plotting by `gridExtra` (2/3)
-
-```{r,fig.align='center', fig.retina=2, fig.height=5.5, fig.width=5.5, fig.show='hide'}
-symbol_points <- mapply(drawPoint, 1:25, SIMPLIFY=FALSE)
-symbols <- do.call(arrangeGrob, symbol_points)
-symbols
-```
-
-
-## Multi-plotting by `gridExtra` (3/3)
-
-```{r,fig.align='center', fig.retina=2, fig.height=5.5, fig.width=5.5, echo=FALSE}
-symbols
-```
-
 
 
 <!--######################################################################################-->
@@ -997,25 +647,233 @@ ggplot(WP.long, aes(x=Year, y=Value, linetype=Region)) + geom_line(size=1.5) +
 ## Exercise: Humidity!
 
 ```{r, fig.retina=2,  fig.align='center',echo=FALSE,fig.height=5,fig.width=9}
-load("./rdata/humidity.RData")
-# humidity=iconv(humidity,'big5','utf8')
-ggplot(humidity,aes(x=date,y=humidity))+
-  geom_line(aes(group=location,colour=location),size=1.5)+
-  theme(axis.text.x = element_text(angle = 90, hjust = 1,vjust=0.5),text=element_text(size=20))
+load("rdata/dat.RData")    #load sample data named dat
+dat$date = as.Date(substr(dat$T.Max.Time, 1, 10))   # generate date
+dat$city = factor(dat$city) # set city as actor
+ggplot(dat,aes(x=date,y=RH))+
+  geom_line(aes(group=city,colour=city),size=1.5)+
+  # adjust the angle of date label  
+  theme(axis.text.x = element_text(angle = 90, hjust = 1,vjust=0.5),
+        text=element_text(size=20))
 ```
 
 
 ## Exercise: Humidity!- Answer
 
 ```{r, fig.retina=2,  fig.align='center',echo=TRUE,fig.height=5,fig.width=9,eval=FALSE}
-load('humidity.RData') #load the file
-ggplot(humidity,aes(x=date,y=humidity))+
-  # 按照location畫圖與填色
-  geom_line(aes(group=location,colour=location),size=1.5)+
-  # 調整X軸label的文字大小與角度
-  theme(axis.text.x = element_text(angle = 90, hjust = 1,vjust=0.5),text=element_text(size=20))
+load("rdata/dat.RData")    #load sample data named dat
+dat$date = as.Date(substr(dat$T.Max.Time, 1, 10))   # generate date
+dat$city = factor(dat$city) # set city as actor
+ggplot(dat,aes(x=date,y=RH))+
+  geom_line(aes(group=city,colour=city),size=1.5)+
+  # adjust the angle of date label  
+  theme(axis.text.x = element_text(angle = 90, hjust = 1,vjust=0.5),
+        text=element_text(size=20))
 ```
 
+
+<!--######################################################################################-->
+# Scatter Plot
+<!--######################################################################################-->
+
+## IMDB data
+```{r}
+movies1 <- movies[!is.na(movies$budget),]
+ggplot(movies1, aes(x=budget, y=rating)) + geom_point()
+```
+
+
+## Control the shape & size of points
+```{r}
+ggplot(movies1, aes(x=budget, y=rating)) + geom_point(shape=5, size=3)
+```
+
+
+## All point shape types in `ggplot2`
+```{r,fig.align='center', fig.retina=2, fig.height=5, fig.width=5, echo=FALSE}
+spoint <- data.frame(x=1,y=1)
+symbol_points <- list()
+for (i in 1:25) {
+    symbol_points[[i]] <- ggplot(spoint, aes(x=x,y=y)) + 
+        geom_point(shape=i, size=5) +
+        ggtitle(sprintf('shape=%s',i)) + 
+        theme(axis.text.x=element_blank(), axis.text.y=element_blank()) +
+        xlab(NULL) + ylab(NULL)
+}
+symbols <- do.call(arrangeGrob,symbol_points)
+plot(symbols)
+```
+
+
+## Grouping: by binary variable
+
+This usually happens accidentally.
+
+```{r}
+ggplot(movies1, aes(x=budget, y=rating, color=Action)) + geom_point()
+```
+
+    
+## Grouping: by categarical variable
+```{r}
+ggplot(movies1, aes(x=budget, y=rating, color=factor(Action))) + 
+    geom_point() + labs(color='Action Movie?')
+```
+
+    
+## Multi-grouping
+```{r}
+ggplot(movies1, aes(x=budget, y=rating, color=factor(Action), shape=(length > 120))) + 
+    geom_point(size=3) + labs(color='Action Movie?')
+```
+
+
+## Fit regression line
+```{r}
+ggplot(movies, aes(x=votes, y=rating)) + geom_point() +
+    stat_smooth(method=lm, level=.95) # add se=FALSE to disable CI
+```
+
+
+## The default is a polynomial fit
+```{r message=FALSE}
+ggplot(movies, aes(x=votes, y=rating)) + geom_point() + stat_smooth()
+```
+
+
+## Fitting is smart to align with grouping
+```{r}
+ggplot(movies1, aes(x=budget, y=rating, color=factor(Action))) + 
+    geom_point() + labs(color='Action Movie?') + stat_smooth(method=lm, se=FALSE)
+```
+
+
+## What if the model is pre-computed?
+```{r}
+lm_model <- lm(rating ~ budget, data=movies1)
+ggplot(movies1, aes(x=budget, y=rating)) + geom_point() +
+    geom_line(aes(x=budget, y=lm_model$fitted.values), color='blue')
+```
+
+
+## Scatter plot "as is": Using `geom_text`
+```{r}
+starmovies <- movies[movies$votes > mean(movies$votes),]
+starmovies <- starmovies[order(-starmovies$rating),][1:10,]
+ggplot(starmovies, aes(x=votes, y=rating)) + geom_point() + geom_text(aes(label=title))
+```
+
+
+## Fine-tune
+```{r}
+ggplot(starmovies, aes(x=votes, y=rating)) + geom_point(color='red') + 
+    geom_text(aes(label=title), hjust=0, vjust=0, angle=20) +
+    xlim(0, max(starmovies$votes)*2) +
+    ylim(min(starmovies$rating), 9.2)
+```
+
+
+## Which Type of Film Cost the Most in Average?
+
+We only choose the movies with single type to simplify the question.
+
+```{r}
+movietype <- colnames(movies)[18:24]
+movies1_singletype <- movies1[rowSums(movies1[, movietype]) == 1,] # remove multi-typed
+movietype_alt <- c(movietype[length(movietype)], movietype[-length(movietype)]) 
+# convert multiple dummies into one factor as grouping var
+# a little matrix operation will do the trick
+dummies <- as.matrix(movies1_singletype[, movietype_alt])
+movies1_singletype$Type <- factor(dummies %*% (1:length(movietype_alt)), labels=movietype_alt)
+
+# Compute the Average Budget of Each Type
+tapply(movies1_singletype$budget, movies1_singletype$Type, mean)
+```
+
+
+## Determine the variation
+
+The first factor level of movietype, `Short`, is represented as the intercept term. 
+
+```{r}
+lmfit <- lm(as.formula("budget ~ Type"), movies1_singletype)
+summary(lmfit)$coef
+```
+
+
+## Another way to estimate the coefficients
+
+The last predictor, `Short` is combined into the intercept term.
+
+```{r}
+# mean(movies1_singletype[movies1_singletype$Animation == 1, 'budget'])
+lmfit <- lm(as.formula(paste('budget ~', paste(movietype, collapse=' + '))), 
+            movies1_singletype)
+summary(lmfit)$coef
+```
+
+
+## Draw the regression lines of each type
+
+What is the association between cost and rating, conditional on type?
+
+```{r}
+movies1_reg_plot <- ggplot(movies1_singletype, aes(x=budget, y=rating, color=Type)) + 
+  geom_point(shape=1) +
+  
+  # set fullrange=T will extend the fitted line outside the sample range
+  stat_smooth(method=lm, se=FALSE, fullrange=FALSE, size=1.5) +
+  
+  # color is the grouping interface, hence scale_color_*
+  scale_color_discrete(name='Movie Type: # of samples', 
+                       labels=paste(levels(movies1_singletype$Type), ': ', 
+                                    table(movies1_singletype$Type)))
+```
+
+
+## Output 
+
+```{r}
+movies1_reg_plot
+```
+
+
+## Exercise: Temprature and RH
+
+Draw a scatter plot of Temprature and RH in Taipei, Taichung, 
+Kaoshiung and Hualien in 2013-05, 2014-05 and 2015-05.
+Furthermore, each location has its own color and regression line.
+
+Hint: Use following code to read all data and slice the data you want.
+
+```{r}
+load("rdata/dat.RData")    # load sample data names dat
+dat$month <- substr(dat$T.Max.Time, 6, 7)
+dat <- dat[dat$month == "05",]
+```
+
+## Answer
+
+```{r}
+ggplot(dat, aes(x=RH, y=Temperature, color=city)) + 
+    geom_point(shape=1) + 
+    stat_smooth(method = lm, size = 1.5)
+```
+
+```{r include=FALSE}
+lmfit <- lm(Temperature ~ RH*city, dat)
+summary(lmfit)
+```
+
+## The regression problem behind the scene
+```{r}
+interact_terms <- paste(paste(movietype, '*budget', sep=''), collapse=' + ')
+lmfit <- lm(as.formula(paste('rating ~', interact_terms)), movies1_singletype)
+tail(summary(lmfit)$coef)
+```
++ None of the interactive term is statistically significant, indeed
++ <span class="red">Visualization != Analysis</span> (Our eyes were not born to work on numbers.)
++ Plots can be easily manipluated to be misleading, accidentally or <span class="red">on purpose</span>
 
 
 <!--######################################################################################-->
@@ -1043,6 +901,7 @@ ggplot(data=humidity)+geom_line(aes(x=date,y=humidity))
 
 data
 ```{r,echo=FALSE}
+load("rdata/humidity.RData")
 humidity$date=as.Date(humidity$date)
 head(humidity[,-1])
 ```
@@ -1154,3 +1013,142 @@ ggplot(humidity,aes(x=date,y=humidity))+
    geom_line(aes(group=location,colour=location),size=1.5)+
   theme_light(base_size = 20)
 ```
+
+## References
++ [ggplot2 Official document](http://ggplot2.org/)
++ [R Graphics Cookbook](http://www.cookbook-r.com/Graphs/)
++ [Introduction to Programming R](https://github.com/everdark/lecture_rintro)
+    + Knowlege of general programming is requisite
+
+
+# Bonus: Annotation
+
+## Annotation
+```{r}
+plot(movies1$budget, movies1$rating) # base solution
+abline(h=median(movies1$rating), col='red')
+text(x=max(movies1$budget)*.9, y=median(movies1$rating), 
+     labels='Median of Rating', col='red', pos=1)
+```
+
+
+## Annotation: Add lines
+```{r fig.show='hold',fig.height=3.5}
+brggp <- ggplot(movies1, aes(x=budget, y=rating)) + geom_point() 
+brggp + geom_hline(yintercept=median(movies1$rating)) # ?geom_abline for general setup
+# brggp + geom_hline(data=movies1, aes(yintercept=median(rating)))  # the same
+# brggp + geom_hline(aes(yintercept=median(movies1$rating)))        # the same
+```
+
+
+## Annotation: Add (single) texts
+```{r,fig.show='hold',fig.height=3.5}
+brggp + geom_hline(yintercept=median(movies1$rating), color='red') + 
+  annotate('text', x=Inf, y=median(movies1$rating), 
+           label='Medaion of Rating', color='red', vjust=1.2, hjust=1)
+# Don't use geom_text for single annotation to avoid overplotting
+```
+
+
+## Annotation: Add segments
+```{r,fig.height=3.5}
+shaw <- movies1[grep('Shawshank Redemption', movies1$title, fixed=TRUE),]
+brggp + annotate('segment', xend=shaw$budget, yend=shaw$rating, x=Inf, y=-Inf,
+                 arrow=grid::arrow(), color='red') +
+  annotate('text', label='The Shawshank Redemption?', x=Inf, y=-Inf,
+           hjust=1.5, vjust=-1, color='red')
+```
+
+
+## Annotation: Add shaded area
+```{r,fig.height=3.5}
+yearcount <- aggregate(title ~ year, data=movies, FUN=length)
+ggplot(yearcount, aes(x=year, y=title)) + geom_line() +
+  annotate('rect', xmin=1990, xmax=2000, ymin=-Inf, ymax=Inf, fill='blue', alpha=.25)
+```
+
+# Bonus: Facet / Multi-plotting
+
+
+## Facet: Single grouping
+```{r,message=FALSE}
+gg <- ggplot(movies1_singletype, aes(x=rating, y=..density..)) + geom_bar()
+gg + facet_grid(Action ~ .) # Plot with grouping variable in different window (Vertical)
+```
+
+
+## Facet: Single grouping
+```{r,message=FALSE, results='hold'}
+# Plot with grouping variable in different window (Horizontal)
+gg + facet_grid(. ~ Action) 
+```
+
+
+## Facet: Multiple grouping
+```{r,message=FALSE}
+movies1_singletype$modern <- (movies1_singletype$year > 2000)
+ggplot(movies1_singletype, aes(x=rating, y=..density..)) + 
+  geom_bar() + facet_grid(modern ~ Action)
+```
+
+
+## Facet: Multi-layer grouping
+```{r,message=FALSE}
+movies1_singletype$rated <- (movies1_singletype$mpaa != '')
+ggplot(movies1_singletype, aes(x=rating, color=modern)) + 
+  geom_line(stat="density") + facet_grid(Type ~ rated)
+```
+
+
+## Facet: Change labels
++ Way 1: Change the grouping var in data.frame to reflect the alternate labels
++ Way 2: Write customized labeller function for `facet_grid`
+```{r,message=FALSE}
+print(label_value) # the default labeller plugg in facet_grid(..., labeller)
+mylabeller <- function(variable, value){
+  if ( variable=='rated' ) 
+    value <- ifelse(value == TRUE, 'Rated Movies', 'Unrated Movies')
+  else if ( variable=='Type' ) 
+    as.character(value)
+}
+```
+
+
+## Facet: Change labels
+```{r,message=FALSE}
+ggplot(movies1_singletype, aes(x=rating, color=modern)) +
+  geom_line(stat="density") + facet_grid(Type ~ rated, labeller=mylabeller)
+```
+
+
+## Multi-plotting by `gridExtra` (1/3)
+
+```{r,fig.align='center', fig.retina=2, fig.height=2, fig.width=2}
+library(gridExtra)
+drawPoint <- function(i) {
+  ggplot(data.frame(x=1, y=1), aes(x=x,y=y)) + 
+    geom_point(shape=i, size=5) +
+    ggtitle(sprintf('shape=%s',i)) + 
+    theme(axis.text.x=element_blank(), axis.text.y=element_blank()) +
+    xlab(NULL) + ylab(NULL)
+  }
+drawPoint(25)
+```
+
+
+## Multi-plotting by `gridExtra` (2/3)
+
+```{r,fig.align='center', fig.retina=2, fig.height=5.5, fig.width=5.5, fig.show='hide'}
+symbol_points <- mapply(drawPoint, 1:25, SIMPLIFY=FALSE)
+symbols <- do.call(arrangeGrob, symbol_points)
+# plot(symbols)
+```
+
+
+## Multi-plotting by `gridExtra` (3/3)
+
+```{r,fig.align='center', fig.retina=2, fig.height=5.5, fig.width=5.5, echo=FALSE}
+plot(symbols)
+```
+
+
