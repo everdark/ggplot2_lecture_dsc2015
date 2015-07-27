@@ -102,9 +102,9 @@ ggp
 
 ```{r, fig.retina=2}
 ggp <- ggplot(data=diamonds[1:5,], aes(x=cut)) + geom_bar()
-### <b>
+
 ggp + scale_x_discrete(drop=FALSE) # ?scale_x_discrete
-### </b>
+
 ```
 
 
@@ -939,6 +939,7 @@ geom_point()
 
 ```{r,fig.width=5}
 ggplot(humidity,aes(x=date,y=humidity))+
+  
 geom_line(aes(group=location))
 ```
 
@@ -954,7 +955,7 @@ ggplot(humidity,aes(x=date,y=humidity))+
 
 ## <font color='red'>stat</font>istics
 
-```{r,fig.align='center'}
+```{r,fig.align='center',message=FALSE,warning=FALSE}
  ggplot(pressure,aes(x=temperature,y=pressure))+
   geom_point()+
   stat_smooth()
@@ -1004,6 +1005,19 @@ ggplot(humidity,aes(x=date,y=humidity))+
   facet_wrap(~location)
 ```
 
+## <font color='red'>facet</font> {.smaller}
+```{r,message=FALSE}
+gg <- ggplot(movies1_singletype, aes(x=rating, y=..density..)) + geom_bar()
+gg + facet_grid(Action ~ .) # Plot with grouping variable in different window (Vertical)
+```
+
+
+## <font color='red'>facet</font> {.smaller}
+```{r,message=FALSE, results='hold'}
+# Plot with grouping variable in different window (Horizontal)
+gg + facet_grid(. ~ Action) 
+```
+
 ## <font color='red'>theme</font>
 
 - 控制圖中的元素與主題
@@ -1014,11 +1028,6 @@ ggplot(humidity,aes(x=date,y=humidity))+
   theme_light(base_size = 20)
 ```
 
-## References
-+ [ggplot2 Official document](http://ggplot2.org/)
-+ [R Graphics Cookbook](http://www.cookbook-r.com/Graphs/)
-+ [Introduction to Programming R](https://github.com/everdark/lecture_rintro)
-    + Knowlege of general programming is requisite
 
 
 # Bonus: Annotation
@@ -1067,58 +1076,7 @@ ggplot(yearcount, aes(x=year, y=title)) + geom_line() +
   annotate('rect', xmin=1990, xmax=2000, ymin=-Inf, ymax=Inf, fill='blue', alpha=.25)
 ```
 
-# Bonus: Facet / Multi-plotting
-
-
-## Facet: Single grouping
-```{r,message=FALSE}
-gg <- ggplot(movies1_singletype, aes(x=rating, y=..density..)) + geom_bar()
-gg + facet_grid(Action ~ .) # Plot with grouping variable in different window (Vertical)
-```
-
-
-## Facet: Single grouping
-```{r,message=FALSE, results='hold'}
-# Plot with grouping variable in different window (Horizontal)
-gg + facet_grid(. ~ Action) 
-```
-
-
-## Facet: Multiple grouping
-```{r,message=FALSE}
-movies1_singletype$modern <- (movies1_singletype$year > 2000)
-ggplot(movies1_singletype, aes(x=rating, y=..density..)) + 
-  geom_bar() + facet_grid(modern ~ Action)
-```
-
-
-## Facet: Multi-layer grouping
-```{r,message=FALSE}
-movies1_singletype$rated <- (movies1_singletype$mpaa != '')
-ggplot(movies1_singletype, aes(x=rating, color=modern)) + 
-  geom_line(stat="density") + facet_grid(Type ~ rated)
-```
-
-
-## Facet: Change labels
-+ Way 1: Change the grouping var in data.frame to reflect the alternate labels
-+ Way 2: Write customized labeller function for `facet_grid`
-```{r,message=FALSE}
-print(label_value) # the default labeller plugg in facet_grid(..., labeller)
-mylabeller <- function(variable, value){
-  if ( variable=='rated' ) 
-    value <- ifelse(value == TRUE, 'Rated Movies', 'Unrated Movies')
-  else if ( variable=='Type' ) 
-    as.character(value)
-}
-```
-
-
-## Facet: Change labels
-```{r,message=FALSE}
-ggplot(movies1_singletype, aes(x=rating, color=modern)) +
-  geom_line(stat="density") + facet_grid(Type ~ rated, labeller=mylabeller)
-```
+# Bonus: Multi-plotting
 
 
 ## Multi-plotting by `gridExtra` (1/3)
@@ -1152,3 +1110,10 @@ plot(symbols)
 ```
 
 
+## References
++ [ggplot2 Official document](http://ggplot2.org/)
++ [R Graphics Cookbook](http://www.cookbook-r.com/Graphs/)
++ [Introduction to Programming R](https://github.com/everdark/lecture_rintro)
+    + Knowlege of general programming is requisite
+    
+# Thank you!
