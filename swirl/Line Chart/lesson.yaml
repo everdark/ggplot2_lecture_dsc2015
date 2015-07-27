@@ -25,10 +25,10 @@
   Output: 然後將humidity.RData放入目前的路徑
   
 - Class: cmd_question
-  Output: 現在我們來讀檔吧~~鍵入load('humidity.RData')
-  CorrectAnswer: load('humidity.RData')
-  AnswerTests: any_of_exprs('load("humidity.RData")', "load('humidity.RData')")
-  Hint: 輸入load('humidity.RData')
+  Output: 現在我們來讀檔吧~~鍵入load('rdata/humidity.RData')
+  CorrectAnswer: load('rdata/humidity.RData')
+  AnswerTests: any_of_exprs('load("rdata/humidity.RData")', "load('rdata/humidity.RData')")
+  Hint: load('rdata/humidity.RData')
   
 - Class: cmd_question
   Output: 使用 View() 來查看匯入的資料表。請輸入 View(humidity)。
