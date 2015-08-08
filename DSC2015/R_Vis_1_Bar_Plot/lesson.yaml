@@ -1,0 +1,186 @@
+- Class: meta
+  Course: DSC2015
+  Lesson: R_Vis_1_Bar_Plot
+  Author: Kyle Chung
+  Type: Standard
+  Organization: DSC 2015 R Tutorial
+  Version: 2.3.1
+
+- Class: text
+  Output: "在這一小節課程中，我們要嘗試使用ggplot2來繪製關於氣象資料的直方圖。"
+  
+- Class: cmd_question
+  Output: "首先我們得利用library()這個函式將ggplot2套件給載入當前的工作環境。"
+  CorrectAnswer: library(ggplot2)
+  AnswerTests: omnitest(correctExpr='library(ggplot2)')
+  Hint: 輸入library(ggplot2)
+
+- Class: cmd_question
+  Output: "再來，我們要把目標的天氣資料給讀進來。
+    在./R路徑底下的load-all.R這支程式可以幫助你將存放於./data底下的天氣資料一口氣讀取進來。
+    嘗試直接利用它吧！你可以透過source()這個方法將一支R程式執行起來"
+  CorrectAnswer: source("./R/load-all.R")
+  AnswerTests: omnitest(correctExpr='source("./R/load-all.R")')
+  Hint: 輸入source("./R/load-all.R")
+
+- Class: cmd_question
+  Output: "資料已經成功載入在dat這個變數上。
+    來確認一下吧！使用head()來查看前六筆資料長什麼模樣。"
+  CorrectAnswer: head(dat)
+  AnswerTests: omnitest(correctExpr='head(dat)')
+  Hint: 輸入head(dat)
+
+- Class: cmd_question
+  Output: "養成好習慣，先確認資料裡變數的型態。
+    我們可以使用str()來檢視一個data.frame裡面各個欄位的屬性。"
+  CorrectAnswer: str(dat)
+  AnswerTests: omnitest(correctExpr='str(dat)')
+  Hint: 輸入str(dat)
+ 
+- Class: mult_question
+  Output: "馬上來畫練習題的第一張圖吧！
+    根據不同的城市，畫出他們個別的總降雨時數。
+    降雨時數是哪個變數？"
+  AnswerChoices: Precp; PrecpHour; SunShine; Temperature
+  CorrectAnswer: PrecpHour
+  AnswerTests: omnitest(correctVal='PrecpHour')
+ 
+- Class: mult_question
+  Output: "根據ggplot基本用法：ggplot(data, aes(x=..., y=..., group=...)) + geom_bar()，
+    data的部分應該填入？"
+  AnswerChoices: PrepcpHour; dat; city
+  CorrectAnswer: dat
+  AnswerTests: omnitest(correctVal='dat')
+  
+- Class: mult_question
+  Output: "繼續完成我們的語法：ggplot(dat, aes(x=..., y=..., group=...)) + geom_bar()，
+    x是直方圖橫坐標的變數，在這裡我們應該填入？"
+  AnswerChoices: PrepcpHour; city
+  CorrectAnswer: city
+  AnswerTests: omnitest(correctVal='city')
+
+- Class: mult_question
+  Output: "繼續完成我們的語法：ggplot(dat, aes(x=city, y=..., group=...)) + geom_bar()，
+    y是直方圖縱坐標的變數，在這裡我們應該填入？"
+  AnswerChoices: PrepcpHour; city
+  CorrectAnswer: PrepcpHour
+  AnswerTests: omnitest(correctVal='PrepcpHour')
+
+- Class: text
+  Output: "繼續完成我們的語法：ggplot(dat, aes(x=city, y=PrepcpHour, group=...)) + geom_bar()，
+    group是在做分組畫圖時需要指定的變數，在這裡我們不需要使用它。"
+  
+- Class: mult_question
+  Output: "繼續完成我們的語法：ggplot(dat, aes(x=city, y=PrecpHour)) + geom_bar()，
+    當進行直方圖作畫時，如果沒有指定y座標變數，geom_bar()的行為是去算每一個x變數在資料中的筆數當作縱座標值。
+    但我們這裡手動指定了y座標變數，所以我們必須在geom_bar()裡面額外告訴他我們要直接畫資料中這個y變數的值。
+    該填入什麼呢？"
+  AnswerChoices: stat="identity"; stat="bin"
+  CorrectAnswer: stat="identity"
+  AnswerTests: omnitest(correctVal='stat="identity"')
+
+- Class: cmd_question
+  Output: "大功告成！現在我們可以畫出第一張圖了。運用以下語法：
+    ggplot(dat, aes(x=city, y=PrecpHour)) + geom_bar(stat='identity')"
+  CorrectAnswer: ggplot(dat, aes(x=city, y=PrecpHour)) + geom_bar(stat="identity")
+  AnswerTests: omnitest(correctExpr='ggplot(dat, aes(x=city, y=PrecpHour)) + geom_bar(stat="identity")')
+  Hint: 輸入ggplot(dat, aes(x=city, y=PrecpHour)) + geom_bar(stat="identity")
+  
+- Class: cmd_question
+  Output: "第二張圖要畫每個城市的降雨量。如法炮製試試看吧！"
+  CorrectAnswer: ggplot(dat, aes(x=city, y=Precp)) + geom_bar(stat="identity")
+  AnswerTests: omnitest(correctExpr='ggplot(dat, aes(x=city, y=Precp)) + geom_bar(stat="identity")')
+  Hint: 降雨量資訊儲存在Precp這個欄位！
+
+- Class: cmd_question
+  Output: "第三張圖要畫每個城市的日照時數。如法炮製試試看吧！"
+  CorrectAnswer: ggplot(dat, aes(x=city, y=SunShine)) + geom_bar(stat="identity")
+  AnswerTests: omnitest(correctExpr='ggplot(dat, aes(x=city, y=SunShine)) + geom_bar(stat="identity")')
+  Hint: 日照時數資訊儲存在SunShine這個欄位！
+
+- Class: text
+  Output: "再來是第四張圖，這個就有點挑戰性了。
+    要畫的依然是根據每個城市，但這次必須同時畫出日照時數跟降雨時數，以不同顏色區隔。
+    我們需要對資料做一些前處理。"
+
+- Class: cmd_question
+  Output: "我們使用dplyr這個套件來做前處理。嘗試把它載入吧！"
+  CorrectAnswer: library(dplyr)
+  AnswerTests: omnitest(correctExpr='library(dplyr)')
+  Hint: 使用library()這個方法來載入套件！
+
+- Class: text
+  Output: "首先，我們要根據不同城市把他們的總降雨時數跟總日照時數計算出來。
+    你會發現我們在前三張圖雖然畫出了這個資訊，但我們並沒有實際去計算它。
+    為什麼呢？這是因為我們透過stat='identity'讓geom_bar()自己在幕後去做了加總。
+    但這次這招不管用了，我們必須明確地先把這些加總結果計算出來。"
+
+- Class: cmd_question
+  Output: "我們可以運用dplyr::summarise以及group_by的功能來做到這件事情。
+    語法：dd <- summarise(group_by(dat, X), rainyHour=sum(Y), sunnyHour=sum(Z))，
+    其中的X, Y, Z變數分別應該填入？"
+  CorrectAnswer: dd <- summarise(group_by(dat, city), rainyHour=sum(PrecpHour), sunnyHour=sum(SunShine))
+  AnswerTests: omnitest(correctExpr='dd <- summarise(group_by(dat, city), rainyHour=sum(PrecpHour), sunnyHour=sum(SunShine))')
+  Hint: 輸入dd <- summarise(group_by(dat, city), rainyHour=sum(PrecpHour), sunnyHour=sum(SunShine))
+
+- Class: text
+  Output: "接下來我們必須把計算出來的新資料dd做轉型(reshape)。
+    藉由reshape2:melt我們可以相對輕易地完成這個任務。
+    reshape2這個套件在ggplot2載入時就會依存在當前的工作環境，所以不需要另外載入它。"
+
+- Class: cmd_question
+  Output: "嘗試直接使用melt！看看它預設行為下的結果是不是我們想要的。"
+  CorrectAnswer: melt(dd)
+  AnswerTests: omnitest(correctExpr='melt(dd)')
+  Hint: 輸入melt(dd)
+
+- Class: cmd_question
+  Output: "非常好！melt正確使用了城市欄位作為ID變數。
+    所以我們只需要再對結果做一點修飾，讓變數名稱變得有意義。透過以下語法：
+    dd <- melt(dd, id.vars='city', variable.name='status', value.name='hour')
+    將欄位名稱重新命名並覆蓋掉dd這個變數吧！"
+  CorrectAnswer: dd <- melt(dd, id.vars="city", variable.name="status", value.name="hour")
+  AnswerTests: omnitest(correctExpr='dd <- melt(dd, id.vars="city", variable.name="status", value.name="hour")')
+  Hint: 輸入dd <- melt(dd, id.vars="city", variable.name="status", value.name="hour")
+
+- Class: cmd_question
+  Output: "幾乎就要完成了。
+    嘗試將以下語法帶入正確的變數吧：
+    ggplot(dd, aes(x=?, y=?, fill=?)) + geom_bar(stat=?)"
+  CorrectAnswer: ggplot(dd, aes(x=city, y=hour, fill=status)) + geom_bar(stat="identity")
+  AnswerTests: omnitest(correctExpr='ggplot(dd, aes(x=city, y=hour, fill=status)) + geom_bar(stat="identity")')
+  Hint: 輸入ggplot(dd, aes(x=city, y=hour, fill=status)) + geom_bar(stat="identity")
+
+- Class: text
+  Output: "接下來讓我們進入Bar Plot第二個題目。
+    要將方才我們畫出的分組直方圖中，縱座標從絕對數值轉換成相對數值來顯示。"
+
+- Class: cmd_question
+  Output: "先來再次看一下剛剛那個分組直方圖的資料長什麼樣子吧。它儲存在dd這個變數裡。"
+  CorrectAnswer: dd
+  AnswerTests: omnitest(correctExpr='dd')
+  Hint: 輸入dd，將它印出來
+
+- Class: text
+  Output: "我們必須把hour這個欄位計算出相對百分比數，也就是分別對每個城市，計算日照時數（降雨時數）相對於日照加上降雨時數的比值。"
+
+- Class: cmd_question
+  Output: "再次運用dplyr，先利用group_by()將資料進行分組。"
+  CorrectAnswer: dd <- group_by(dd, city)
+  AnswerTests: omnitest(correctExpr='dd <- group_by(dd, city)')
+  Hint: 輸入dd <- group_by(dd, city)
+
+- Class: cmd_question
+  Output: "接著以mutate()計算我們需要的比值。
+    以pct命名這個新欄位，然後這次將結果存入dd2這個變數吧。"
+  CorrectAnswer: dd2 <- mutate(dd, pct=hour / sum(hour))
+  AnswerTests: omnitest(correctExpr='dd2 <- mutate(dd, pct=hour / sum(hour))')
+  Hint: 輸入dd2 <- mutate(dd, pct=hour / sum(hour))
+
+- Class: cmd_question
+  Output: "只差最後一步了！利用ggplot畫圖。你是否已經能默寫出作圖語法了？"
+  CorrectAnswer: ggplot(dd2, aes(x=city, y=pct, fill=status)) + geom_bar(stat="identity")
+  AnswerTests: omnitest(correctExpr='ggplot(dd2, aes(x=city, y=pct, fill=status)) + geom_bar(stat="identity")')
+  Hint: 輸入ggplot(dd2, aes(x=city, y=pct, fill=status)) + geom_bar(stat="identity")
+
+
