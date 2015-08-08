@@ -277,21 +277,21 @@ dat$Precp <- as.numeric(dat$Precp)
 ## exercise! | total rainy hours by city
 
 ```{r, echo=FALSE}
-ggplot(dat, aes(x=city, y=PrecpHour)) + geom_bar(stat="identity")
+ggplot(dat, aes(x=city, y=PrecpHour)) + geom_bar(stat="identity", fill="gray25")
 ```
 
 
 ## exercise! | total rainy volume by city
 
 ```{r, echo=FALSE}
-ggplot(dat, aes(x=city, y=Precp)) + geom_bar(stat="identity")
+ggplot(dat, aes(x=city, y=Precp)) + geom_bar(stat="identity", fill="gray25")
 ```
 
 
 ## exercise! | total sunny hours by city
 
 ```{r, echo=FALSE}
-ggplot(dat, aes(x=city, y=SunShine)) + geom_bar(stat="identity")
+ggplot(dat, aes(x=city, y=SunShine)) + geom_bar(stat="identity", fill="gray25")
 ```
 
 
@@ -316,9 +316,9 @@ source("./R/load-all.R")
 dat[dat$Precp == 'T', "Precp"] <- '0'
 dat$Precp <- as.numeric(dat$Precp)
 
-ggplot(dat, aes(x=city, y=PrecpHour)) + geom_bar(stat="identity")
-ggplot(dat, aes(x=city, y=Precp)) + geom_bar(stat="identity")
-ggplot(dat, aes(x=city, y=SunShine)) + geom_bar(stat="identity")
+ggplot(dat, aes(x=city, y=PrecpHour)) + geom_bar(stat="identity", fill="gray25")
+ggplot(dat, aes(x=city, y=Precp)) + geom_bar(stat="identity", fill="gray25")
+ggplot(dat, aes(x=city, y=SunShine)) + geom_bar(stat="identity", fill="gray25")
 
 dd <- by(dat, dat$city, 
          function(x) c(rainyHour=sum(x$PrecpHour), sunnyHour=sum(x$SunShine)))
@@ -355,7 +355,6 @@ ggplot(dd, aes(x=city, y=hour, fill=status)) + geom_bar(stat="identity")
 ```
 
 
-
 ## proportional stacking bar
 <div class="columns-2">
 
@@ -390,7 +389,17 @@ head(diamondsDT, 18)
 </div>
 
 
-## possible solution 1 | just do it: `aggregate` and `lapply`
+## possible solution 1 | use `dplyr`
+
+```{r, message=FALSE}
+library(dplyr)
+DP <- summarise(group_by(diamonds, color, cut), cnt=n())
+DP <- mutate(DP, pct=cnt / sum(cnt))
+head(DP)
+```
+
+
+## possible solution 2 | just do it: `aggregate` and `lapply`
 
 ```{r}
 diamonds$cnt <- 0L
@@ -401,7 +410,7 @@ head(diamondsDF)
 ```
 
 
-## possible solution 2 | play tricky: `table` and `by`
+## possible solution 3 | play tricky: `table` and `by`
 
 ```{r}
 DF <- as.data.frame(table(diamonds$color, diamonds$cut, dnn=list("color", "cut")))
@@ -411,7 +420,7 @@ head(DF)
 ```
 
 
-## possible solution 3 | try `ave`
+## possible solution 4 | try `ave`
 ```{r}
 diamonds$cnt <- ave(rep(1, nrow(diamonds)), diamonds$color, diamonds$cut, FUN=sum)
 diamonds$cnt_by_color <- ave(rep(1, nrow(diamonds)), diamonds$color, FUN=sum)
@@ -421,7 +430,7 @@ head(DFave)
 ```
 
 
-## possible solution 4 | use `data.table`
+## possible solution 5 | use `data.table`
 
 ```{r}
 library(data.table)
@@ -429,16 +438,6 @@ diamondsDT <- as.data.table(diamonds)
 diamondsDT <- diamondsDT[, list(cnt=.N), by="color,cut"]
 diamondsDT <- diamondsDT[, pct:=cnt / sum(cnt), by="color"]
 head(diamondsDT)
-```
-
-
-## possible solution 5 | use `dplyr`
-
-```{r, message=FALSE}
-library(dplyr)
-DP <- summarise(group_by(diamonds, color, cut), cnt=n())
-DP <- mutate(DP, pct=cnt / sum(cnt))
-head(DP)
 ```
 
 
@@ -455,18 +454,23 @@ head(DFSQL)
 ```
 
 
-## finally, proportional stacking bar
+## finally, proportional stacking bar!
 
 ```{r, fig.retina=2, echo=FALSE}
 ggplot(diamondsDF, aes(x=color, y=pct, fill=cut)) + geom_bar(stat='identity')
 ```
 
 
-<div class="columns-2">
 ## exercise!
+<div class="columns-2">
 
-```{r, fig.retina=2, fig.width=5, fig.height=5.5, echo=FALSE}
+absolute count
+```{r, fig.retina=2, fig.width=5, fig.height=5, echo=FALSE}
 ggplot(dd, aes(x=city, y=hour, fill=status)) + geom_bar(stat="identity")
+```
+
+made proportional
+```{r, fig.retina=2, fig.width=5, fig.height=5, echo=FALSE}
 dd2 <- do.call(rbind, by(dd, dd$city, 
                         function(x) within(x, pct <- hour / sum(hour))))
 ggplot(dd2, aes(x=city, y=pct, fill=status)) + geom_bar(stat="identity")
