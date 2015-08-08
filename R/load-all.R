@@ -10,4 +10,4 @@ for ( city in citynames ) {
     dat[[city]]$city <- city
 }
 dat <- do.call(rbind, dat)
-save("./rdata/dat.RData")
+save(dat, file="./rdata/dat.RData")
