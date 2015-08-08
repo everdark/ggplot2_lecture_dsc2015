@@ -536,14 +536,6 @@ ggplot(WorldPhones.DF, aes(x=as.numeric(year), y=Asia)) + geom_line(size=1.5)
 ```
 
 
-
-
-
-
-
-
-
-
 ## Wait a minute... {.smaller}
 Were they really drawn from the same data?
 <div class="columns-2">
