@@ -251,7 +251,7 @@ ggplot(data=diamonds[diamonds$cut %in% c("Fair", "Ideal"),], aes(x=price, y=..de
 
 ## exercise!
 
-+ use the weather data to plot:
++ use the weather data (`source("./R/load-all.R")`) to plot:
     + total rainy hours for each city (PrecpHour)
     + total rainy volume for each city (Precp)
     + total sunny hours for each city (SunShine)
