@@ -355,10 +355,11 @@ ggplot(dd, aes(x=city, y=hour, fill=status)) + geom_bar(stat="identity")
 ```
 
 
-<div class="columns-2">
-## proportional stacking bar
 
-```{r, fig.retina=2, fig.width=5, fig.height=5.5, echo=FALSE}
+## proportional stacking bar
+<div class="columns-2">
+
+```{r, fig.retina=2, fig.width=5.5, fig.height=5.5, echo=FALSE}
 ggplot(data=diamonds, aes(x=color, fill=cut)) + geom_bar() + theme_minimal()
 
 diamonds$Count <- 0L
@@ -370,14 +371,21 @@ ggplot(diamondsDF, aes(x=color, y=pct, fill=cut)) + geom_bar(stat='identity') + 
 </div>
 
 
-<div class="columns-2">
-## need to transform data and then use `stat="identity"`
 
+## need to transform data and then use `stat="identity"`
+<div class="columns-2">
+
+before
+```{r, echo=FALSE}
+head(diamonds[,c("color","cut")], 18)
+```
+
+after
 ```{r, echo=FALSE}
 diamondsDT <- as.data.table(diamonds)
 diamondsDT <- diamondsDT[, list(cnt=.N), by="color,cut"]
 diamondsDT <- diamondsDT[, pct:=cnt / sum(cnt), by="color"]
-head(diamondsDT, 20)
+head(diamondsDT, 18)
 ```
 </div>
 
