@@ -389,7 +389,6 @@ ggplot(diamondsDF, aes(x=color, y=pct, fill=cut)) + geom_bar(stat='identity') + 
 </div>
 
 
-
 ## need to transform data and then use `stat="identity"`
 <div class="columns-2">
 
@@ -497,9 +496,31 @@ ggplot(dd2, aes(x=city, y=pct, fill=status)) + geom_bar(stat="identity")
 </div>
 
 
-## possible solution
+## possible solution 1 (dplyr)
 ```{r, eval=FALSE}
 library(ggplot2)
+library(dplyr)
+dd <- summarise(group_by(dat, city), rainyHour=sum(PrecpHour), sunnyHour=sum(SunShine))
+dd <- melt(dd, id.vars="city", variable.name="status", value.name="hour")
+
+# further processing...
+dd <- group_by(dd, city)
+dd2 <- mutate(dd, pct=hour / sum(hour))
+ggplot(dd2, aes(x=city, y=pct, fill=status)) + geom_bar(stat="identity")
+```
+
+
+## possible solution 2 (no external package)
+```{r, eval=FALSE}
+library(ggplot2)
+dd <- by(dat, dat$city, 
+         function(x) c(rainyHour=sum(x$PrecpHour), sunnyHour=sum(x$SunShine)))
+dd <- as.data.frame(do.call(rbind, dd))
+dd$city <- rownames(dd)
+dd <- reshape(dd, direction="long", varying=c("rainyHour", "sunnyHour"), 
+              idvar="city", v.names="hour", times=c("rainyHour", "sunnyHour"), timevar="status")
+
+# further processing...
 dd2 <- do.call(rbind, by(dd, dd$city, 
                         function(x) within(x, pct <- hour / sum(hour))))
 ggplot(dd2, aes(x=city, y=pct, fill=status)) + geom_bar(stat="identity")
