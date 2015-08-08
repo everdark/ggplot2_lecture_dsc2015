@@ -308,7 +308,26 @@ ggplot(dd, aes(x=city, y=hour, fill=status)) + geom_bar(stat="identity")
 ```
 
 
-## exercise: possible solution 1 (basic)
+## exercise: possible solution 1 (dplyr)
+
+```{r, eval=FALSE}
+library(ggplot2)
+library(dplyr)
+source("./R/load-all.R")
+dat[dat$Precp == 'T', "Precp"] <- '0'
+dat$Precp <- as.numeric(dat$Precp)
+
+ggplot(dat, aes(x=city, y=PrecpHour)) + geom_bar(stat="identity", fill="gray25")
+ggplot(dat, aes(x=city, y=Precp)) + geom_bar(stat="identity", fill="gray25")
+ggplot(dat, aes(x=city, y=SunShine)) + geom_bar(stat="identity", fill="gray25")
+
+dd <- summarise(group_by(dat, city), rainyHour=sum(PrecpHour), sunnyHour=sum(SunShine))
+dd <- melt(dd, id.vars="city", variable.name="status", value.name="hour")
+ggplot(dd, aes(x=city, y=hour, fill=status)) + geom_bar(stat="identity")
+```
+
+
+## exercise: possible solution 2 (no external package)
 
 ```{r, eval=FALSE}
 library(ggplot2)
@@ -330,7 +349,7 @@ ggplot(dd, aes(x=city, y=hour, fill=status)) + geom_bar(stat="identity")
 ```
 
 
-## exercise: possible solution 2 (advanced)
+## exercise: possible solution 3 (data.table)
 
 ```{r, eval=FALSE}
 library(ggplot2)
