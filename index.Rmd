@@ -308,7 +308,7 @@ ggplot(dd, aes(x=city, y=hour, fill=status)) + geom_bar(stat="identity")
 ```
 
 
-## exercise: possible solution 1 (dplyr)
+## exercise: possible solution 1 | use `dplyr`
 
 ```{r, eval=FALSE}
 library(ggplot2)
@@ -327,7 +327,7 @@ ggplot(dd, aes(x=city, y=hour, fill=status)) + geom_bar(stat="identity")
 ```
 
 
-## exercise: possible solution 2 (no external package)
+## exercise: possible solution 2 | no external package
 
 ```{r, eval=FALSE}
 library(ggplot2)
@@ -349,7 +349,7 @@ ggplot(dd, aes(x=city, y=hour, fill=status)) + geom_bar(stat="identity")
 ```
 
 
-## exercise: possible solution 3 (data.table)
+## exercise: possible solution 3 | use `data.table`
 
 ```{r, eval=FALSE}
 library(ggplot2)
@@ -379,7 +379,9 @@ ggplot(dd, aes(x=city, y=hour, fill=status)) + geom_bar(stat="identity")
 
 ```{r, fig.retina=2, fig.width=5.5, fig.height=5.5, echo=FALSE}
 ggplot(data=diamonds, aes(x=color, fill=cut)) + geom_bar() + theme_minimal()
+```
 
+```{r, fig.retina=2, fig.width=5.5, fig.height=5.5, echo=FALSE}
 diamonds$Count <- 0L
 diamondsDF <- aggregate(data=diamonds, Count ~ color + cut, FUN=length)
 diamondsDF <- do.call(rbind, lapply(split(diamondsDF, diamondsDF$color), 
@@ -482,12 +484,10 @@ ggplot(diamondsDF, aes(x=color, y=pct, fill=cut)) + geom_bar(stat='identity')
 ## exercise!
 <div class="columns-2">
 
-absolute count
 ```{r, fig.retina=2, fig.width=5, fig.height=5, echo=FALSE}
 ggplot(dd, aes(x=city, y=hour, fill=status)) + geom_bar(stat="identity")
 ```
 
-made proportional
 ```{r, fig.retina=2, fig.width=5, fig.height=5, echo=FALSE}
 dd2 <- do.call(rbind, by(dd, dd$city, 
                         function(x) within(x, pct <- hour / sum(hour))))
