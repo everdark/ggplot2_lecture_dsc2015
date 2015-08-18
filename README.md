@@ -1,6 +1,7 @@
 # ggplot2_lecture_dsc2015
 Lectures of ggplot2 for [DSC 2015](http://datasci.tw) R training.
-Co-work with [mansunkuo](https://github.com/mansunkuo) and [KuiMing](https://github.com/KuiMing)
+Co-work with [mansunkuo](https://github.com/mansunkuo) and [KuiMing](https://github.com/KuiMing).
+For more materials, see [DSC2015Tutorial](https://github.com/TaiwanRUserGroup/DSC2015Tutorial). 
 
 To view slides directly, see [here](http://everdark.github.io/ggplot2_lecture_dsc2015).
 
