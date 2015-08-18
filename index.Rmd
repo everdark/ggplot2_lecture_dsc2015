@@ -749,7 +749,7 @@ humidity$date = as.Date(humidity$date)
 ```{r, fig.retina=2,  fig.align='center',echo=FALSE,fig.height=3,fig.width=5,eval=TRUE}
 ggplot(humidity,aes(x=date,y=humidity))+
     geom_line(aes(group=location,colour=location),size=1.5) +
-    scale_x_date(labels = date_format("%Y-%m-%d"))
+    scale_x_date(labels = date_format("%m-%d"))
 ```
 
 
@@ -758,7 +758,7 @@ ggplot(humidity,aes(x=date,y=humidity))+
 ```{r, fig.retina=2,  fig.align='center',echo=TRUE,fig.height=4.5,fig.width=7.5,eval=TRUE}
 ggplot(humidity,aes(x=date,y=humidity))+
   geom_line(aes(group=location,colour=location),size=1.5) +
-  scale_x_date()
+  scale_x_date(labels = date_format("%m-%d"))
 ```
 
 <!--######################################################################################-->
