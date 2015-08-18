@@ -1,6 +1,6 @@
 ---
 title: "R Visualization"
-author: "Ben Chen, Kyle Chung, Mansun Kuo"
+author: "Kyle Chung, [Mansun Kuo](mailto:coccolegacy@gmail.com), Ben Chen"
 date: '`r Sys.Date()`<br><br><a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/"><img alt="創用 CC 授權條款" style="border-width:0" src="img/by-nc-sa-4.0-88x31.png" /></a>'
 output:
   ioslides_presentation:
@@ -565,29 +565,33 @@ WorldPhones.DF$year <- rownames(WorldPhones.DF)
 class(WorldPhones.DF) # this time we should be fine!
 ```
 
+
 ## What the...?
-```{r,fig.align='center', fig.retina=2, message=FALSE}
+```{r,fig.align='center', fig.retina=2, message=FALSE, echo = TRUE}
 ggplot(WorldPhones.DF, aes(x=year, y=Asia)) + geom_line(size=1.5)
 ```
 
+<!--
 ## Or simply make x continous, if possible
 ```{r,fig.align='center', fig.retina=2}
 ggplot(WorldPhones.DF, aes(x=as.numeric(year), y=Asia)) + geom_line(size=1.5)
 ```
-
+-->
 
 ## Wait a minute... {.smaller}
 Were they really drawn from the same data?
 <div class="columns-2">
 
-```{r,fig.align='center', fig.retina=2, echo=FALSE,fig.width=3.5}
-ggplot(WorldPhones.DF, aes(x=year, y=Asia, group=1)) + geom_line(size=1.5)
+```{r,fig.align='center', fig.retina=2, echo=TRUE, fig.width=3.5, fig.height=3}
+ggplot(WorldPhones.DF, aes(x=year,y=Asia,group=1)) + 
+    geom_line(size=1.5)
 ```
 
 
 
-```{r,fig.align='center', fig.retina=2,  echo=FALSE,fig.width=3.5}
-ggplot(WorldPhones.DF, aes(x=as.numeric(year), y=Asia)) + geom_line(size=1.5)
+```{r,fig.align='center', fig.retina=2,  echo=TRUE, fig.width=3.5, fig.height=3}
+ggplot(WorldPhones.DF, aes(x=as.numeric(year),y=Asia)) + 
+    geom_line(size=1.5)
 ```
 
 </div>
@@ -596,21 +600,20 @@ ggplot(WorldPhones.DF, aes(x=as.numeric(year), y=Asia)) + geom_line(size=1.5)
 ## Can you see the difference? {.smaller}
 
 Remember? Categorical x at default will not show null data.
+Treat x as categorical may mislead your audiences.
 
 <div class="columns-2">
 
-
-
-```{r,fig.align='center', fig.retina=2,  fig.width=3.5, echo=FALSE}
-ggplot(WorldPhones.DF, aes(x=year, y=Asia, group=1)) + geom_line(size=1.5) + 
-  geom_point(shape=19, size=3, color='red')
+```{r,fig.align='center', fig.retina=2,  fig.width=3.5, fig.height=3, echo=TRUE}
+ggplot(WorldPhones.DF, aes(x=year,y=Asia,group=1)) + 
+    geom_line(size=1.5) + 
+    geom_point(shape=19, size=3, color='red')
 ```
 
-
-
-```{r,fig.align='center', fig.retina=2, fig.width=3.5, echo=FALSE}
-ggplot(WorldPhones.DF, aes(x=as.numeric(year), y=Asia)) + geom_line(size=1.5) + 
-  geom_point(shaep=19, size=3, color='red')
+```{r,fig.align='center', fig.retina=2, fig.width=3.5, fig.height=3, echo=TRUE}
+ggplot(WorldPhones.DF, aes(x=as.numeric(year),y=Asia)) + 
+    geom_line(size=1.5) + 
+    geom_point(shaep=19, size=3, color='red')
 ```
 </div>
 
@@ -646,7 +649,7 @@ WP=WorldPhones.DF[,c(1:3,8)]
 
 head(WP,8)
 ```
-
+<br><br><br><br><br>
 
 Long format (with melt)
 ```{r}
@@ -655,66 +658,108 @@ WP.long=melt(WP,id.vars='year')
 colnames(WP.long)= 
   c('Year','Region','Value')
 head(WP.long)
+levels(WP.long$Region)
 ```
 
 </div>
 
 ## The rest is easy!
 
+The order of lines will be arranged by the order of factor.
 
 ```{r,fig.align='center', fig.retina=2,   echo=TRUE}
 WP.long$Year <- as.integer(as.character(WP.long$Year))
 ggplot(WP.long, aes(x=Year, y=Value, color=Region)) + geom_line(size=1.5)
 ```
 
+<!--
+## Reverse order
+
+```{r,fig.align='center', fig.retina=2}
+ggplot(WP.long, aes(x=Year, y=Value, color = Region)) + geom_line(size=1.5) +
+    guides(color=guide_legend(reverse=TRUE))
+```
+-->
 
 ## More grouping var: linetype {.vcenter}
-```{r,fig.align='center', fig.retina=2}
-ggplot(WP.long, aes(x=Year, y=Value, linetype=Region))+
-  geom_line(size=1.5)
+
+```{r,fig.align='center', fig.retina=2, fig.height=4}
+ggplot(WP.long, aes(x=Year, y=Value, linetype=Region, color = Region)) + geom_line(size=1.5)
 ```
 
-
+<!--
 ## Again, beware of categorical x!
 ```{r,fig.align='center', fig.retina=2}
 ggplot(WP.long,aes(x=factor(Year), y=Value))+
   geom_line(aes(linetype=Region,group=Region),size=1.5)
 ```
+-->
 
-## Reverse order of legend labels
-```{r,fig.align='center', fig.retina=2}
-ggplot(WP.long, aes(x=Year, y=Value, linetype=Region)) + geom_line(size=1.5) +
-  guides(linetype=guide_legend(reverse=TRUE))
+## What if the x-axis is not numerical
+
+In most situation, we would like to have a time series plot with 
+date or datetime format.
+
+ggplot handles date and POSIXct and you can configure date scale with
+**scale_x_date** and **scale_x_datetime**. 
+
+```{r}
+library(scales)
+WP.long$date = as.Date(paste0(WP.long$Year, "-01-01"))
+WP.long$datetime = ISOdatetime(WP.long$Year, 1, 1, 0, 0, 0)
+str(WP.long)
 ```
+
+## Set Scale
+
+<div class="columns-2">
+```{r, fig.width=5, fig.height=3}
+ggplot(WP.long, aes(x=date, y=Value, 
+                    linetype = Region, 
+                    color = Region)) +
+    geom_line(size=1.5)
+```
+<br><br>
+
+```{r, fig.width=5, fig.height=3}
+ggplot(WP.long, aes(x=datetime, y=Value, 
+                    linetype = Region, 
+                    color = Region)) +
+    geom_line(size=1.5) + 
+    scale_x_datetime(breaks = date_breaks("3 years"),
+                     labels = date_format("%y"))
+```
+</div>
 
 
 ## Exercise: Humidity!
 
-```{r, fig.retina=2,  fig.align='center',echo=FALSE,fig.height=5,fig.width=9}
-load("rdata/dat.RData")    #load sample data named dat
-dat$date = as.Date(substr(dat$T.Max.Time, 1, 10))   # generate date
-dat$city = factor(dat$city) # set city as actor
-ggplot(dat,aes(x=date,y=RH))+
-  geom_line(aes(group=city,colour=city),size=1.5)+
-  # adjust the angle of date label  
-  theme(axis.text.x = element_text(angle = 90, hjust = 1,vjust=0.5),
-        text=element_text(size=20))
+Draw a line chart of date vs humidity in Hualien, Kaohsiung, Taichung and Taipei in May 2015.
+Set x-axis as date and y-axis as humidity.
+
+Hint: load sample data with following code:
+
+```{r, fig.retina=2,  fig.align='center',echo=TRUE,fig.height=5,fig.width=9}
+#load sample data named humidity
+load(file.path(find.package("DSC2015R"), "visualization/rdata/humidity.RData"))
+humidity$location = factor(humidity$location) # set city as actor
+humidity$date = as.Date(humidity$date)
+```
+
+```{r, fig.retina=2,  fig.align='center',echo=FALSE,fig.height=3,fig.width=5,eval=TRUE}
+ggplot(humidity,aes(x=date,y=humidity))+
+    geom_line(aes(group=location,colour=location),size=1.5) +
+    scale_x_date(labels = date_format("%Y-%m-%d"))
 ```
 
 
 ## Exercise: Humidity!- Answer
 
-```{r, fig.retina=2,  fig.align='center',echo=TRUE,fig.height=5,fig.width=9,eval=FALSE}
-load("rdata/dat.RData")    #load sample data named dat
-dat$date = as.Date(substr(dat$T.Max.Time, 1, 10))   # generate date
-dat$city = factor(dat$city) # set city as actor
-ggplot(dat,aes(x=date,y=RH))+
-  geom_line(aes(group=city,colour=city),size=1.5)+
-  # adjust the angle of date label  
-  theme(axis.text.x = element_text(angle = 90, hjust = 1,vjust=0.5),
-        text=element_text(size=20))
+```{r, fig.retina=2,  fig.align='center',echo=TRUE,fig.height=4.5,fig.width=7.5,eval=TRUE}
+ggplot(humidity,aes(x=date,y=humidity))+
+  geom_line(aes(group=location,colour=location),size=1.5) +
+  scale_x_date()
 ```
-
 
 <!--######################################################################################-->
 # Scatter Plot
@@ -801,6 +846,8 @@ ggplot(movies1, aes(x=budget, y=rating)) + geom_point() +
 
 
 ## Scatter plot "as is": Using `geom_text`
+
+<!--
 ```{r}
 starmovies <- movies[movies$votes > mean(movies$votes),]
 starmovies <- starmovies[order(-starmovies$rating),][1:10,]
@@ -809,6 +856,7 @@ ggplot(starmovies, aes(x=votes, y=rating)) + geom_point() + geom_text(aes(label=
 
 
 ## Fine-tune
+-->
 ```{r}
 ggplot(starmovies, aes(x=votes, y=rating)) + geom_point(color='red') + 
     geom_text(aes(label=title), hjust=0, vjust=0, angle=20) +
@@ -824,6 +872,7 @@ We only choose the movies with single type to simplify the question.
 ```{r}
 movietype <- colnames(movies)[18:24]
 movies1_singletype <- movies1[rowSums(movies1[, movietype]) == 1,] # remove multi-typed
+# set Short as the first one  
 movietype_alt <- c(movietype[length(movietype)], movietype[-length(movietype)]) 
 # convert multiple dummies into one factor as grouping var
 # a little matrix operation will do the trick
@@ -835,7 +884,7 @@ tapply(movies1_singletype$budget, movies1_singletype$Type, mean)
 ```
 
 
-## Determine the variation
+## Determine variation
 
 The first factor level of movietype, `Short`, is represented as the intercept term. 
 
@@ -882,30 +931,36 @@ movies1_reg_plot
 ```
 
 
-## Exercise: Temprature and RH
+## Exercise: humidity and rainfall
 
-Draw a scatter plot of Temprature and RH in Taipei, Taichung, 
-Kaoshiung and Hualien in 2013-05, 2014-05 and 2015-05.
+Draw a scatter plot of humidity and rainfall in Taipei, Taichung, 
+Kaoshiung and Hualien in 2015-05.
 Furthermore, each location has its own color and regression line.
 
-Hint: Use following code to read all data and slice the data you want.
+Hint: Use following code to read data.
 
 ```{r}
-load("rdata/dat.RData")    # load sample data names dat
-dat$month <- substr(dat$T.Max.Time, 6, 7)
-dat <- dat[dat$month == "05",]
+load(file.path(find.package("DSC2015R"), "visualization/rdata/humidity.RData"))
+humidity$month <- substr(humidity$date, 6, 7)
+humidity$rainfall[is.na(humidity$rainfall)] = 0
+```
+
+```{r, fig.retina=2,  fig.align='center',echo=FALSE,fig.height=3,fig.width=5,eval=TRUE}
+ggplot(humidity, aes(x=humidity, y=rainfall, color=location)) + 
+    geom_point(shape=1) + 
+    stat_smooth(method = lm, size = 1.5)
 ```
 
 ## Answer
 
-```{r}
-ggplot(dat, aes(x=RH, y=Temperature, color=city)) + 
+```{r, fig.retina=2,  fig.align='center',echo=TRUE,fig.height=4.5,fig.width=7.5,eval=TRUE}
+ggplot(humidity, aes(x=humidity, y=rainfall, color=location)) + 
     geom_point(shape=1) + 
     stat_smooth(method = lm, size = 1.5)
 ```
 
 ```{r include=FALSE}
-lmfit <- lm(Temperature ~ RH*city, dat)
+lmfit <- lm(rainfall ~ humidity*location, humidity)
 summary(lmfit)
 ```
 

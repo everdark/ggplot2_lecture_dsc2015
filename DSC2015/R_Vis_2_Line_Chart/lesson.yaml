@@ -6,163 +6,167 @@
   Organization: DSC 2015 R Tutorial
   Version: 0.1
 
-- Class: text
-  Output: ggplot2是最具影響力的R套件之一
+#- Class: text
+#  Output: ggplot2是最具影響力的R套件之一
   
-- Class: text
-  Output: 我們可以利用ggplot2，簡單畫出美觀的圖形
+#- Class: text
+#  Output: 我們可以利用ggplot2，簡單畫出美觀的圖形
   
-- Class: text
-  Output: 接下來，我們將利用整理好的天氣資料練習用ggplot2畫圖
+#- Class: text
+#  Output: 接下來，我們將利用整理好的天氣資料練習用ggplot2畫圖
   
-- Class: cmd_question
-  Output: 首先請先觀察現在所在路徑，鍵入getwd()
-  CorrectAnswer: getwd()
-  AnswerTests: omnitest(correctExpr='getwd()')
-  Hint: 輸入getwd()
+#- Class: cmd_question
+#  Output: 首先請先觀察現在所在路徑，鍵入getwd()
+#  CorrectAnswer: getwd()
+#  AnswerTests: omnitest(correctExpr='getwd()')
+#  Hint: 輸入getwd()
   
-- Class: text
-  Output: 然後將humidity.RData放入目前的路徑
-  
-- Class: cmd_question
-  Output: 現在我們來讀檔吧~~鍵入load('rdata/humidity.RData')
-  CorrectAnswer: load('rdata/humidity.RData')
-  AnswerTests: any_of_exprs('load("rdata/humidity.RData")', "load('rdata/humidity.RData')")
-  Hint: load('rdata/humidity.RData')
-  
-- Class: cmd_question
-  Output: 使用 View() 來查看匯入的資料表。請輸入 View(humidity)。
-  CorrectAnswer: View(humidity)
-  AnswerTests: omnitest(correctExpr='View(humidity)')
-  Hint: 輸入View(humidity)
-  
-- Class: text
-  Output: 你現在應該看到humidity了，你可以看到各地每天的降雨量與濕度
-  
-- Class: text
-  Output: 接下來，我們要畫各地每天的溼度變化，這要畫成什麼圖呢？  
-
-- Class: mult_question
-  Output: 接下來，我們要畫各地每天的溼度變化，這要畫成什麼圖呢？
-  AnswerChoices: Bar Chart; Line Chart; Scatter Plot
-  CorrectAnswer: Line Chart
-  AnswerTests: omnitest(correctVal="Line Chart")
-  Hint: 連續的資料，應該要怎麼畫呢
-
-- Class: text
-  Output: 所以，我們開始用ggplot2畫line chart吧
-  
-- Class: text
-  Output: 基本的語法是ggplot(data,aes(x=...,y=...,group=...))+geom_line()
-  
-- Class: text
-  Output: 按照這個語法，開始一一填空。
+#- Class: text
+#  Output: 然後將humidity.RData放入目前的路徑
 
 - Class: cmd_question
-  Output: 我們現在要畫各地區每天的濕度變化，請問data該填入什麼？
-  CorrectAnswer: humidity
-  AnswerTests: omnitest("humidity")
+  Output: 現在讓我們來練習line chart，首先先讀取ggplot2套件，請輸入 library(ggplot2)
+  CorrectAnswer: library(ggplot2)
+  AnswerTests: omnitest(correctExpr='library(ggplot2)')
+  Hint: library(ggplot2)
 
 - Class: text
-  Output: humidity中有四個欄位，分別是rainfall, date, location和humidity
-
-- Class: mult_question
-  Output: 請問ggplot(data,aes(x=...,y=...,group=...))+geom_line()中，x該放哪個欄位的資料？
-  AnswerChoices: date; rainfall; location; humidity
-  CorrectAnswer: date
-  AnswerTests: omnitest(correctVal="date")
-  Hint: 日期喔~~~
-
-- Class: mult_question
-  Output: y該放哪個欄位的資料？
-  AnswerChoices: date; rainfall; location; humidity
-  CorrectAnswer: humidity
-  AnswerTests: omnitest(correctVal="humidity")
-  Hint: 濕度~
-
-- Class: mult_question
-  Output: group指的是按照某一欄位的標示，將資料分別畫成圖，在這裡該放哪個欄位？
-  AnswerChoices: date; rainfall; location; humidity
-  CorrectAnswer: location
-  AnswerTests: omnitest(correctVal="location")
-  Hint: 各地區~~
-
-- Class: text
-  Output: 基本上，該放的參數都了解了，可以開始下指令畫圖啦~~
-
-- Class: cmd_question
-  Output: 請輸入 ggplot(humidity,aes(x=date,y=humidity,group=location))+geom_line()
-  CorrectAnswer: ggplot(humidity,aes(x=date,y=humidity,group=location))+geom_line()
-  AnswerTests: omnitest("ggplot(humidity,aes(x=date,y=humidity,group=location))+geom_line()")
-  Hint: 請輸入ggplot(humidity,aes(x=date,y=humidity,group=location))+geom_line()
-
-  
-- Class: text
-  Output: 圖是畫出來了，可是，4個地區都是同樣顏色，無法辨別~~得想辦法填色~~
-
+  Output: 接著讀取資料吧，我們已經為您準備好範例資料了
   
 - Class: cmd_question
-  Output: 請輸入 ggplot(humidity,aes(x=date,y=humidity,group=location))+geom_line(aes(color=location))
-  CorrectAnswer: ggplot(humidity,aes(x=date,y=humidity,group=location))+geom_line(aes(color=location))
-  AnswerTests: omnitest("ggplot(humidity,aes(x=date,y=humidity,group=location))+geom_line(aes(color=location))")
-  Hint: 請輸入ggplot(humidity,aes(x=date,y=humidity,group=location))+geom_line(aes(color=location))
-
-- Class: text
-  Output: 在aes指定顏色依照location變化，顏色和標示就一起出現了
+  Output: 鍵入 load(file.path(find.package("DSC2015R"), "visualization/rdata/humidity.RData"))
+  CorrectAnswer: load(file.path(find.package("DSC2015R"), "visualization/rdata/humidity.RData"))
+  AnswerTests: any_of_exprs('load(file.path(find.package("DSC2015R"), "visualization/rdata/humidity.RData"))', "load(file.path(find.package('DSC2015R'), 'visualization/rdata/humidity.RData'))")
+  Hint: load(file.path(find.package("DSC2015R"), "visualization/rdata/humidity.RData"))
   
-- Class: text
-  Output: 好像x軸上的日期都擠在一起了~~怎麼辦？
+#- Class: cmd_question
+#  Output: 使用 View() 來查看匯入的資料表。請輸入 View(humidity)。
+#  CorrectAnswer: View(humidity)
+#  AnswerTests: omnitest(correctExpr='View(humidity)')
+# Hint: 輸入View(humidity)
   
-- Class: text
-  Output: 這時可以用函式：theme
-  
-- Class: text
-  Output: 再解決日期的問題之前，先讓code縮短。令linec等於剛剛畫的圖。
-  
-- Class: cmd_question
-  Output: 請輸入 linec<-ggplot(humidity,aes(x=date,y=humidity,group=location))+geom_line(aes(color=location))
-  CorrectAnswer: linec<-ggplot(humidity,aes(x=date,y=humidity,group=location))+geom_line(aes(color=location))
-  AnswerTests: omnitest("linec<-ggplot(humidity,aes(x=date,y=humidity,group=location))+geom_line(aes(color=location))")
-  Hint: 請輸入linec<-ggplot(humidity,aes(x=date,y=humidity,group=location))+geom_line(aes(color=location))
+#- Class: text
+#  Output: 你現在應該看到humidity了，你可以看到各地每天的降雨量與濕度
 
 - Class: cmd_question
-  Output: 請輸入 linec<-linec+theme(axis.text.x = element_text(angle = 90, hjust = 1,vjust=0.5))
-  CorrectAnswer: linec<-linec+theme(axis.text.x = element_text(angle = 90, hjust = 1,vjust=0.5))
-  AnswerTests: omnitest("linec<-linec+theme(axis.text.x = element_text(angle = 90, hjust = 1,vjust=0.5))")
-  Hint: 請輸入linec<-linec+theme(axis.text.x = element_text(angle = 90, hjust = 1,vjust=0.5))
-  
+  Output: 接著觀察我們資料的型別，請輸入 str(humidity)
+  CorrectAnswer: str(humidity)
+  AnswerTests: omnitest("str(humidity)")
+  Hint: str(humidity)
+
+- Class: text
+  Output: humidity是一個data.frame，其中humidity則是相對濕度，date則是型別為字串的日期，我們來試著把date轉為Date型別吧
+
 - Class: cmd_question
-  Output: 讓圖輸出，請輸入 linec
-  CorrectAnswer: linec
-  AnswerTests: omnitest("linec")
-  Hint: 請輸入linec
+  Output: 請輸入 humidity$date <-as.Date(humidity$date)
+  CorrectAnswer: humidity$date <-as.Date(humidity$date)
+  AnswerTests: omnitest("humidity$date <-as.Date(humidity$date)")
+  Hint: humidity$date <-as.Date(humidity$date)  
 
-  
-- Class: text
-  Output: 結果，日期的顯示方向改變了！
-
-  
-- Class: text
-  Output: 在theme裡利用element_text調整X軸文字(axis.text.x)的angle角度、hjust水平位置和vjust垂直位置。
-
-- Class: text
-  Output: 可是字好像有點小，繼續利用theme來字體大小~~
-  
 - Class: cmd_question
-  Output: 請輸入 linec<-linec+theme(text=element_text(size=20))
-  CorrectAnswer: linec<-linec+theme(text=element_text(size=20))
-  AnswerTests: omnitest("linec<-linec+theme(text=element_text(size=20))")
-  Hint: 請輸入linec<-linec+theme(text=element_text(size=20))
-  
+  Output: 再輸入一次 str(humidity)
+  CorrectAnswer: str(humidity)
+  AnswerTests: omnitest("str(humidity)")
+  Hint: str(humidity)
+
+- Class: text
+  Output: 太好了，現在date已經是Date型別了。
+
+- Class: text
+  Output: 接著我們來試著利用Line Chart呈現各個地區的濕度
+
+- Class: text
+  Output: 基本的語法是ggplot(data, aes(x=...,y=...,color=...)) + geom_line()
+
+- Class: text
+  Output: 首先先做出我們的ggplot物件
+
 - Class: cmd_question
-  Output: 讓圖輸出，請輸入 linec
-  CorrectAnswer: linec
-  AnswerTests: omnitest("linec")
-  Hint: 請輸入linec  
+  Output: 請輸入 linec <- ggplot(humidity, aes(x=date, y=humidity, color=location))
+  CorrectAnswer: linec <- ggplot(humidity, aes(x=date, y=humidity, color=location))
+  AnswerTests: omnitest(correctExpr='linec <- ggplot(humidity, aes(x=date, y=humidity, color=location))')
+  Hint: linec <- ggplot(humidity, aes(x=date, y=humidity, color=location))
 
 - Class: text
-  Output: 同樣，在theme裡利用element_text調整text的size。
+  Output: 現在linec這個物件已經有我們繪製圖形所需要的資訊了，我們趕快來畫畫看吧！
+
+- Class: cmd_question
+  Output: 請輸入 linec + geom_line(size = 1.5)
+  CorrectAnswer: linec + geom_line(size = 1.5)
+  AnswerTests: omnitest("linec + geom_line(size = 1.5)")
+  Hint: linec + geom_line(size = 1.5)
 
 - Class: text
-  Output: 畫完line chart後，接下來畫scatter plot吧~
+  Output: 有沒有發現x軸自動就變成日期的格式，是不是很貼心啊～
+
+- Class: cmd_question
+  Output: 接著我們來試著調整x軸日期的格式，首先先載入scales，請輸入 library(scales)
+  CorrectAnswer: library(scales)
+  AnswerTests: omnitest("library(scales)")
+  Hint: library(scales)
+
+- Class: text
+  Output: 使用scale_x_date(labels = date_format("%Y-%m-%d"))可以將x軸的時間格式顯示為YYYY-mm-dd
+
+- Class: cmd_question
+  Output: 請輸入 linec + geom_line(size = 1.5) + scale_x_date(labels = date_format("%Y-%m-%d"))
+  CorrectAnswer: linec + geom_line(size = 1.5) + scale_x_date(labels = date_format("%Y-%m-%d"))
+  AnswerTests: omnitest('linec + geom_line(size = 1.5) + scale_x_date(labels = date_format("%Y-%m-%d"))')
+  Hint: linec + geom_line(size = 1.5) + scale_x_date(labels = date_format("%Y-%m-%d"))
+
+- Class: text
+  Output: Line Chart的練習就到這邊，謝謝大家！
+
+#- Class: text
+#  Output: 這時可以用函式：theme
+  
+#- Class: text
+#  Output: 再解決日期的問題之前，先讓code縮短。令linec等於剛剛畫的圖。
+  
+#- Class: cmd_question
+#  Output: 請輸入 linec<-ggplot(humidity,aes(x=date,y=humidity,group=location))+geom_line(aes(color=location))
+#  CorrectAnswer: linec<-ggplot(humidity,aes(x=date,y=humidity,group=location))+geom_line(aes(color=location))
+#  AnswerTests: omnitest("linec<-ggplot(humidity,aes(x=date,y=humidity,group=location))+geom_line(aes(color=location))")
+#  Hint: 請輸入linec<-ggplot(humidity,aes(x=date,y=humidity,group=location))+geom_line(aes(color=location))
+
+#- Class: cmd_question
+#  Output: 請輸入 linec<-linec+theme(axis.text.x = element_text(angle = 90, hjust = 1,vjust=0.5))
+#  CorrectAnswer: linec<-linec+theme(axis.text.x = element_text(angle = 90, hjust = 1,vjust=0.5))
+#  AnswerTests: omnitest("linec<-linec+theme(axis.text.x = element_text(angle = 90, hjust = 1,vjust=0.5))")
+#  Hint: 請輸入linec<-linec+theme(axis.text.x = element_text(angle = 90, hjust = 1,vjust=0.5))
+  
+#- Class: cmd_question
+#  Output: 讓圖輸出，請輸入 linec
+#  CorrectAnswer: linec
+#  AnswerTests: omnitest("linec")
+#  Hint: 請輸入linec
+
+  
+#- Class: text
+#  Output: 結果，日期的顯示方向改變了！
+
+  
+#- Class: text
+#  Output: 在theme裡利用element_text調整X軸文字(axis.text.x)的angle角度、hjust水平位置和vjust垂直位置。
+
+#- Class: text
+#  Output: 可是字好像有點小，繼續利用theme來字體大小~~
+  
+#- Class: cmd_question
+#  Output: 請輸入 linec<-linec+theme(text=element_text(size=20))
+#  CorrectAnswer: linec<-linec+theme(text=element_text(size=20))
+#  AnswerTests: omnitest("linec<-linec+theme(text=element_text(size=20))")
+#  Hint: 請輸入linec<-linec+theme(text=element_text(size=20))
+  
+#- Class: cmd_question
+#  Output: 讓圖輸出，請輸入 linec
+#  CorrectAnswer: linec
+#  AnswerTests: omnitest("linec")
+#  Hint: 請輸入linec  
+
+#- Class: text
+#  Output: 同樣，在theme裡利用element_text調整text的size。
+
+#- Class: text
+#  Output: 畫完line chart後，接下來畫scatter plot吧~
   
