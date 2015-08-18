@@ -17,11 +17,10 @@
 
 - Class: cmd_question
   Output: "再來，我們要把目標的天氣資料給讀進來。
-    在./R路徑底下的load-all.R這支程式可以幫助你將存放於./data底下的天氣資料一口氣讀取進來。
-    嘗試直接利用它吧！你可以透過source()這個方法將一支R程式執行起來"
-  CorrectAnswer: source("./R/load-all.R")
-  AnswerTests: omnitest(correctExpr='source("./R/load-all.R")')
-  Hint: 輸入source("./R/load-all.R")
+    資料為在DSC2015R套件目錄的子目錄底下（visualization/rdata/dat.RData）。"
+  CorrectAnswer: load(file.path(find.package("DSC2015R"), "visualization/rdata/dat.RData"))
+  AnswerTests: omnitest(correctExpr='load(file.path(find.package("DSC2015R"), "visualization/rdata/dat.RData"))')
+  Hint: 輸入load(file.path(find.package("DSC2015R"), "visualization/rdata/dat.RData"))
 
 - Class: cmd_question
   Output: "資料已經成功載入在dat這個變數上。
