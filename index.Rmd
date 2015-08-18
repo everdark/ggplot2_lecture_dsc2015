@@ -1,6 +1,6 @@
 ---
 title: "R Visualization"
-author: "Kyle Chung, [Mansun Kuo](mailto:coccolegacy@gmail.com), Ben Chen"
+author: "[Kyle Chung](mailto:kylechun9@gmail.com), [Mansun Kuo](mailto:coccolegacy@gmail.com), Ben Chen"
 date: '`r Sys.Date()`<br><br><a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/"><img alt="創用 CC 授權條款" style="border-width:0" src="img/by-nc-sa-4.0-88x31.png" /></a>'
 output:
   ioslides_presentation:
@@ -313,7 +313,7 @@ ggplot(dd, aes(x=city, y=hour, fill=status)) + geom_bar(stat="identity")
 ```{r, eval=FALSE}
 library(ggplot2)
 library(dplyr)
-source("./R/load-all.R")
+load(file.path(find.package("DSC2015R"), "visualization/rdata/dat.RData"))
 dat[dat$Precp == 'T', "Precp"] <- '0'
 dat$Precp <- as.numeric(dat$Precp)
 
@@ -331,7 +331,7 @@ ggplot(dd, aes(x=city, y=hour, fill=status)) + geom_bar(stat="identity")
 
 ```{r, eval=FALSE}
 library(ggplot2)
-source("./R/load-all.R")
+load(file.path(find.package("DSC2015R"), "visualization/rdata/dat.RData"))
 dat[dat$Precp == 'T', "Precp"] <- '0'
 dat$Precp <- as.numeric(dat$Precp)
 
@@ -354,7 +354,7 @@ ggplot(dd, aes(x=city, y=hour, fill=status)) + geom_bar(stat="identity")
 ```{r, eval=FALSE}
 library(ggplot2)
 library(data.table) # need 1.9.5 => devtools:install_github("Rdatatable/data.table", build_vignettes=FALSE)
-src_path <- "./data"
+src_path <- file.path(find.package("DSC2015R"), "visualization/data"))
 citynames <- unique(gsub("_.*", '', dir(src_path)))
 citynames <- citynames[1:4] # take english version only
 dat <- list()
