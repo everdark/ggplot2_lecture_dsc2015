@@ -126,7 +126,7 @@
   Output: "接下來我們必須把計算出來的新資料dd做轉型(reshape)。
     藉由reshape2:melt我們可以相對輕易地完成這個任務。
     首先利用library()載入reshape2。"
-  CorrectAnwer: library(reshape2)
+  CorrectAnswer: library(reshape2)
   AnswerTests: omnitest(correctExpr='library(reshape2)')
   Hint: 輸入library(reshape2)
 
