@@ -122,10 +122,13 @@
   AnswerTests: omnitest(correctExpr='dd <- summarise(group_by(dat, city), rainyHour=sum(PrecpHour), sunnyHour=sum(SunShine))')
   Hint: 輸入dd <- summarise(group_by(dat, city), rainyHour=sum(PrecpHour), sunnyHour=sum(SunShine))
 
-- Class: text
+- Class: cmd_question
   Output: "接下來我們必須把計算出來的新資料dd做轉型(reshape)。
     藉由reshape2:melt我們可以相對輕易地完成這個任務。
-    reshape2這個套件在ggplot2載入時就會依存在當前的工作環境，所以不需要另外載入它。"
+    首先利用library()載入reshape2。"
+  CorrectAnwer: library(reshape2)
+  AnswerTests: omnitest(correctExpr='library(reshape2)')
+  Hint: 輸入library(reshape2)
 
 - Class: cmd_question
   Output: "嘗試直接使用melt！看看它預設行為下的結果是不是我們想要的。"
