@@ -106,7 +106,7 @@
   Hint: library(scales)
 
 - Class: text
-  Output: 使用scale_x_date(labels = date_format("%Y-%m-%d"))可以將x軸的時間格式顯示為YYYY-mm-dd
+  Output: 使用scale_x_date(labels = date_format("%Y-%m-%d"))可以將x軸的時間格式顯示為YYYY-mm-dd，scale_x_date(labels = date_format("%m-%d"))則可將x軸的時間格式顯示為mm-dd
 
 - Class: cmd_question
   Output: 請輸入 linec + geom_line(size = 1.5) + scale_x_date(labels = date_format("%Y-%m-%d"))

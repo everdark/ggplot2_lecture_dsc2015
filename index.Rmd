@@ -295,7 +295,7 @@ ggplot(dat, aes(x=city, y=SunShine)) + geom_bar(stat="identity", fill="gray25")
 ```
 
 
-## exercise! | hours group by rainy/suny by city
+## exercise! | hours group by rainy/sunny by city
 
 ```{r, echo=FALSE}
 dd <- by(dat, dat$city, 
@@ -560,21 +560,21 @@ ggplot(WorldPhones, aes(x=rownames(WorldPhones), y=Asia)) + geom_line()
 ```
 + Remember: `ggplot` eat only data.frames
 ```{r}
-WorldPhones.DF <- as.data.frame(WorldPhones)
-WorldPhones.DF$year <- rownames(WorldPhones.DF)
-class(WorldPhones.DF) # this time we should be fine!
+WP.DF <- as.data.frame(WorldPhones)
+WP.DF$year <- rownames(WP.DF)
+class(WP.DF) # this time we should be fine!
 ```
 
 
 ## What the...?
 ```{r,fig.align='center', fig.retina=2, message=FALSE, echo = TRUE}
-ggplot(WorldPhones.DF, aes(x=year, y=Asia)) + geom_line(size=1.5)
+ggplot(WP.DF, aes(x=year, y=Asia)) + geom_line(size=1.5)
 ```
 
 <!--
 ## Or simply make x continous, if possible
 ```{r,fig.align='center', fig.retina=2}
-ggplot(WorldPhones.DF, aes(x=as.numeric(year), y=Asia)) + geom_line(size=1.5)
+ggplot(WP.DF, aes(x=as.numeric(year), y=Asia)) + geom_line(size=1.5)
 ```
 -->
 
@@ -583,14 +583,14 @@ Were they really drawn from the same data?
 <div class="columns-2">
 
 ```{r,fig.align='center', fig.retina=2, echo=TRUE, fig.width=3.5, fig.height=3}
-ggplot(WorldPhones.DF, aes(x=year,y=Asia,group=1)) + 
+ggplot(WP.DF, aes(x=year,y=Asia,group=1)) + 
     geom_line(size=1.5)
 ```
 
 
 
 ```{r,fig.align='center', fig.retina=2,  echo=TRUE, fig.width=3.5, fig.height=3}
-ggplot(WorldPhones.DF, aes(x=as.numeric(year),y=Asia)) + 
+ggplot(WP.DF, aes(x=as.numeric(year),y=Asia)) + 
     geom_line(size=1.5)
 ```
 
@@ -605,13 +605,13 @@ Treat x as categorical may mislead your audiences.
 <div class="columns-2">
 
 ```{r,fig.align='center', fig.retina=2,  fig.width=3.5, fig.height=3, echo=TRUE}
-ggplot(WorldPhones.DF, aes(x=year,y=Asia,group=1)) + 
+ggplot(WP.DF, aes(x=year,y=Asia,group=1)) + 
     geom_line(size=1.5) + 
     geom_point(shape=19, size=3, color='red')
 ```
 
 ```{r,fig.align='center', fig.retina=2, fig.width=3.5, fig.height=3, echo=TRUE}
-ggplot(WorldPhones.DF, aes(x=as.numeric(year),y=Asia)) + 
+ggplot(WP.DF, aes(x=as.numeric(year),y=Asia)) + 
     geom_line(size=1.5) + 
     geom_point(shaep=19, size=3, color='red')
 ```
@@ -625,14 +625,14 @@ ggplot(WorldPhones.DF, aes(x=as.numeric(year),y=Asia)) +
 
 Wide format
 ```{r,fig.align='center', fig.retina=2,   echo=FALSE}
-WorldPhones.DF[, c(1:3, 8)]
+WP.DF[, c(1:3, 8)]
 ```
 
 
 
 Long format
 ```{r,fig.align='center', fig.retina=2,   echo=FALSE}
-WP <- WorldPhones.DF[, c(1:3, 8)]
+WP <- WP.DF[, c(1:3, 8)]
 WP <- cbind(stack(WP[, 1:3]), WP$year)
 colnames(WP) <- c('Value', 'Region', 'Year')
 WP[1:8,]
@@ -645,7 +645,7 @@ WP[1:8,]
 <div class="columns-2">
 Wide format
 ```{r}
-WP=WorldPhones.DF[,c(1:3,8)]
+WP=WP.DF[,c(1:3,8)]
 
 head(WP,8)
 ```
